@@ -10,35 +10,46 @@ export function cmdBroadcast(bids:string[])
 	openDB()
 	.then((db:DB)=>
 	{
-		_async.eachSeries(bids,function(bid,cbAsync)
+		_async.eachSeries(bids,function(bid:any,cbAsync)
 		{
-			_younow.getArchivedBroadcast(bid)
-			.then(archive=>
+			if (bid < 107942269)
 			{
-				if (archive.errorCode)
+				// Before HLS
+
+				error(`${bid} 263 Replay no longer exists`)
+				cbAsync()
+			}
+			else
+			{
+				_younow.getArchivedBroadcast(bid)
+				.then(archive=>
 				{
-					error(`${bid} ${archive.errorCode} ${archive.errorMsg}`)
-				}
-				else
-				{
-					_younow.resolveUser(db,archive.userId)
-					.then(user=>
+					if (archive.errorCode)
 					{
-						if (user.errorCode)
+						error(`${bid} ${archive.errorCode} ${archive.errorMsg}`)
+					}
+					else
+					{
+						_younow.resolveUser(db,archive.userId)
+						.then(user=>
 						{
-							error(`${bid} ${user.errorCode} ${user.errorMsg}`)
-						}
-						else
-						{
-							/** @todo created ? */
-							return _younow.downloadArchive(user,bid as any,0)
-						}
-					})
-					.catch(error)
-				}
-			})
-			.catch(error)
-			.then(cbAsync)
+							if (user.errorCode)
+							{
+								error(`${bid} ${user.errorCode} ${user.errorMsg}`)
+							}
+							else
+							{
+								/** @todo created ? */
+
+								return _younow.downloadArchive(user,bid as any,new Date(archive.broadcastTitle).getTime()/1000)
+							}
+						})
+						.catch(error)
+					}
+				})
+				.catch(error)
+				.then(cbAsync)
+			}
 		})
 	})
 	.catch(error)

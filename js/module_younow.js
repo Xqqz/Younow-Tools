@@ -141,8 +141,18 @@ async function downloadArchive(user, bid, started) {
     if (!exists) {
         return module_utils_1.getURL(archive.hls, "utf8")
             .then((playlist) => {
-            let total_segment = playlist.match(/\d+\.ts/g).length;
-            let url = archive.hls.match(/(https:.+)playlist.m3u8/i)[1];
+            let m = playlist.match(/\d+\.ts/g);
+            if (!m) {
+                module_utils_1.error(playlist);
+                return false;
+            }
+            let total_segment = m.length;
+            m = archive.hls.match(/(https:.+)playlist.m3u8/i);
+            if (!m) {
+                module_utils_1.error(archive.hls);
+                return false;
+            }
+            let url = m[1];
             let bar = new _progress(`${user.profile} ${bid} :bar :percent :elapseds/:etas :rate/bps`, {
                 total: total_segment,
                 width: 20,
@@ -305,7 +315,7 @@ exports.saveJSON = saveJSON;
 *
 */
 function createFilename(live) {
-    let filename = _path.join(younow_1.settings.pathDownload, `${live.country || "XX"}_${live.profile}_${module_utils_1.formatDateTime(new Date((live.dateStarted || live.dateCreated || Date.now()) * 1000))}_${live.broadcastId}`);
+    let filename = _path.join(younow_1.settings.pathDownload, `${live.country || "XX"}_${live.profile}_${module_utils_1.formatDateTime(new Date((live.dateStarted || live.dateCreated || Date.now() / 1000) * 1000))}_${live.broadcastId}`);
     module_utils_1.info("createFilename", filename);
     return filename;
 }
