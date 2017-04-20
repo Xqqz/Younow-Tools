@@ -180,6 +180,7 @@ switch (commandId) {
         cmd_ignore_1.cmdIgnore(params);
         break;
     case CommandID.debug:
+        module_utils_1.log(pkg);
         require("./cmd_debug").cmdDebug(params);
         break;
     default:

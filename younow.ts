@@ -237,6 +237,7 @@ switch (commandId)
 	break
 
 	case CommandID.debug:
+	log(pkg)
 	require("./cmd_debug").cmdDebug(params)
 	break
 
