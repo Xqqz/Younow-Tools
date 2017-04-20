@@ -1,0 +1,304 @@
+# Younow-Tools
+
+## Installation
+
+1st you need to install NodeJS [link](https://nodejs.org/en/download/current/ "**NodeJS**") download and install the >=v7.8.0 version.
+
+Then launch your terminal (cmd.exe) and install Younow-Tools with NPM :
+
+**npm install -g younow-tools**
+
+The command **younow** will be available in your console (cmd.exe or powershell.exe or bash)
+
+## Summary
+
+This package offer various tools to use Younow via cli. Type younow for basic usage.
+
+User(s) as profile name (string) or userId (number) or profile URL are supported.
+
+Every broadcast are recorded from the beginning, even if you catch the record at the end. So the downloader will (very quickly) download the the entire broadcast.
+
+The database location by default is in your user folder (%APPDATA%/YounowTools/broadcasters.txt on windows / Linux $HOME/YounowTools)
+
+Ctrl-C to stop at any time.
+
+## Commands
+
+### add
+
+Add broadcaster(s) to your local database :
+
+* for faster resolve
+* database query
+* record their live broadcasts (scan mode)
+
+> `younow add user 1234 https://www.younow.com/user`
+
+### remove
+
+Remove user(s) from your database (removed but not ignored)
+
+> `younow remove 1234 somebody`
+
+### ignore
+
+Ignore/unignore broadcasters when they're broadcasting
+
+### note
+
+Add an annotation (comment) to a broadcaster in the database. Must be quoted
+
+> `younow note somebody "really funny"`
+
+### search
+
+Search in the database for one or multiple regex pattern/string in all properties
+
+> `younow search sn.pch.t dude sexy https instagram funny youtube`
+
+### resolve
+
+Resolve broadcasters(s) and display some informations without adding them to the database
+
+> `younow resolve someone 12345 https://younow.com/user`
+
+### vcr <user(s)>
+
+Try to download (if moments are enabled) past broadcast of a broadcaster.
+
+### live <user(s)>
+
+Record a running broadcast user(s) (error 206 means broadcast is over)
+
+### broadcast <bid(s)...>
+
+Download broadcast(s) by its ID (number)
+
+### scan [-t interval] <javascript_script>
+
+-t number : scan interval in minute (default every 5 minutes)
+javascript_script : a javascript to analyze live broadcasters
+
+> `younow -t 3 --dl z:\ --mv w:\ script.js`
+
+### api
+
+check api compatibility (advanced)
+
+### fixdb
+
+compact/normalize your database (advanced)
+
+### debug
+
+ignore this (advanced)
+
+## Options
+
+### --db <path>
+
+Change default database location.
+
+### --dl <path>
+
+Change default download folder (current path is the default)
+
+### -l --limit <number>
+
+Number of parallel downloads for a stream (default 5).
+Don't abuse or a stream can be broken (500 server protection)
+
+### --mv <path>
+
+Move files (stream/thumbnail/informations) at the end of the broadcast to this folder (default is do nothing)
+
+### -v --verbose
+
+Increase verbosity level (all commands)
+
+-v basic messages (in blue)
+-vv debug messages (in green) network
+-vvv dump json requests
+
+> `younow -v add user`
+
+### -h --help
+
+Guess what ?
+
+## How to script ?!
+
+Your script is called for every new tag or broadcasters on line and it decides to trigger or not the recording/ignoring/resolving == FILTERING
+
+The script is sand-boxed and only has access to basic javascript (no network, no disk, etc...). Some knowledge of basic javascript is needed.
+
+(some scripts are available in the source folder)
+
+The script receives the log variable. it's a function than the script can use to print some message.
+
+1st it will receive the tag variable (object) :
+
+	tag.tag : name of the tag (string)
+	tag.score : score of the tag (float 0 to 10)
+
+	The script must returns true or false to accept or reject the tag (ignore).
+
+	Basic tag filter :
+
+	if (tag) // first check if it needs to scan/ignore a tag
+	{
+		if (tag=="music")
+		{
+	log("make some noise !")
+			true // yeah music
+		}
+		else
+		{
+			false // ignore all other tags
+		}
+	}
+
+	Advanced tag filter :
+
+	if (tag)
+	{
+		if (tag.score<5) // ignore non popular tag
+		{
+			false // ignore this tag
+		}
+		else if (tag.match(/(music|funny|piano|singing)/i)) // tag match some key word ?
+		{
+			true // scan this tag
+		}
+		else
+		{
+			false // ignore the rest
+		}
+	}
+
+2nd call it will receive the user variable (tag is now null)
+
+	user.profile : profile name (string)
+	user.userId : user id (number)
+	user.userlevel : user level
+	user.l : language en es me de tr
+	user.viewers : watchers
+	user.likes : current broadcast likes
+	user.fans : current broadcast fans
+	user.totalFans : all broadcasts fans
+	user.position : current position (0 to 100)
+
+	Basic script :
+
+	if (tag)
+	{
+		// handle tags...
+	}
+	else if (user)
+	{
+		if (user.viewers<50)
+		{
+			"ignore" // ignore broadcasts with less than 50 viewers
+		}
+		else if (user.l.match(/(me|de|tr|es)/i))
+		{
+			"ignore" // ignore non english languages
+		}
+		else if (user.userId==1234 || user.profile=="yeahhhhhhh")
+		{
+            log("your favorite broadcaster is online !")
+			"follow" // record these broadcasts
+		}
+		else if (user.position>50)
+		{
+            log(user.profile,"seems to be popular !")
+			"resolve" // request more informations for this broadcaster (3rd pass)
+		}
+		else
+		{
+            log("I'm bored")
+			"waiting" // wait for broadcast to match some values
+		}
+	}
+
+3rd call it will receive the user and the broadcast variables (tag is null)
+When the script returns resolve it will receive informations on the broadcast (LiveBroadcast Object)
+This variable exports more information on a current broadcast than the user one.
+
+(for more the list and some informations on all properties of this object check for the source file Younow-tools.d.ts)
+
+	At least the final script to handle various broadcast parameters :
+
+	if (tag)
+	{
+		true // accept all tags
+	}
+	else if (user)
+	{
+		if (user.viewers<50)
+		{
+			"ignore"
+		}
+		else if (broadcast) // if resolved
+		{
+			if (broadcast.country.match(/(OM|JO|EG|PK|PH|RO|TR|KW|SA|MA|TN)/))
+			{
+				return "ignore" // ignore some countries...
+			}
+			else if (broadcast.country.match(/(AU|GB|US|UK|IE)/)) // only English spoken
+			{
+				if (broadcast.broadcastsCount<20) // ignore newbies
+				{
+					return "ignore"
+				}
+				else
+				{
+                    log("Interesting broadcast",user.profile)
+                    "resolve"
+				}
+			else
+			{
+				return "waiting"
+			}
+		}
+		else
+		{
+			"resolve" // request more informations
+		}
+	}
+
+# WARNING !
+
+They're hundred of broadcasts every minutes so a wrong filtering can fill you hard drive and saturate your network bandwidth very quickly !
+
+The script receive 4 variables :
+
+declare var tag:Younow.Tag
+declare var user:Younow.TagInfoUser
+declare var broadcast:Younow.LiveBroadcast
+declare var log:any
+
+# Tips !
+
+userId == channelId and profile=profileUrlString
+
+userId is more reliable than the profile name to identify a broadcaster because it can't be changed
+
+REWIND => The broadcast is live and beginning is actually downloaded
+WATCH => The broadcast is running & downloaded
+
+Sometimes the stream timestamps are corrupt and can be read smoothly (server side bug). FFMPEG can be used to repair those files :
+
+ffmpeg.exe, -i video_file.ts -c copy -video_track_timescale 0 fixed_video.ts
+
+## Comments
+
+To compile the source (.ts) you need typescript (VSCode or Atom editor) and share your scripts ^.^
+
+**As an open source project use it at your own risk. Younow can break it down at any time.**
+
+**Report any bug or missing feature at your will.**
+
+**If you like this software, please consider a Ƀitcoin donation to bitcoin://34fygtqeAP62xixpTj6w9XTtfKmqjFqpo6**
+
+#Enjoy !

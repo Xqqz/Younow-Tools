@@ -1,0 +1,12 @@
+thumbs.db
+desktop.ini
+
+*.jpg
+*.log
+
+/node_modules/
+
+/cmd_debug.ts
+/js/cmd_debug.js
+
+*.sublime-*
