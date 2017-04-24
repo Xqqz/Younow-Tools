@@ -8,6 +8,7 @@ import {settings} from "./younow"
 import {getURL, log, info, error, debug,formatDateTime,prettify} from "./module_utils"
 import {isUsernameInDB,convertToUserDB} from "./module_db"
 import * as dos from "./module_promises"
+import {VideoWriter} from "./module_ffmpeg"
 
 // CDN=400 API=200 https://cdn.younow.com/php/api/broadcast/info/user=XXX
 
@@ -156,6 +157,7 @@ export function getTagInfo(tag):Promise<Younow.TagInfo>
 export async function downloadArchive(user:Younow.UserInfo|DBUser,bid:number,started:number)
 {
 	info("downloadArchive",user.profile,bid)
+
 	let archive=await getArchivedBroadcast(bid)
 
 	if (archive.errorCode)
@@ -172,7 +174,7 @@ export async function downloadArchive(user:Younow.UserInfo|DBUser,bid:number,sta
 	fix.country=user.country
 	fix.awsUrl=archive.broadcastThumbnail
 
-	let video_filename=createFilename(archive as any)+".ts"
+	let video_filename=createFilename(archive as any)+"."+settings.videoFormat
 
 	await saveJSON(archive as any)
 	await downloadThumbnail(archive as any)
@@ -227,24 +229,32 @@ export async function downloadArchive(user:Younow.UserInfo|DBUser,bid:number,sta
 						//bar.tick()
 						next(null,null)
 					})
-				},(err,buffers)=>
+				},(err,buffers:Buffer[])=>
 				{
-					let stream=_fs.createWriteStream(video_filename)
+					let stream=new VideoWriter(video_filename,settings.useFFMPEG)
 
 					for (let buffer of buffers)
 					{
 						if (buffer)
 						{
-							stream.write(buffer)
+							stream.write(buffer,null)
 						}
 					}
-					stream.end()
-					resolve(true)
+					stream.close(err=>
+					{
+						resolve(true)
+					})
 				})
 			})
 			.then(err=>
 			{
-				return moveFile(video_filename)
+				return new Promise((resolve,reject)=>
+				{
+					setTimeout(()=>
+					{
+						resolve(moveFile(video_filename))
+					},10000)
+				})
 			})
 		})
 	}
@@ -272,7 +282,7 @@ export async function downloadLiveStream(live:Younow.LiveBroadcast):Promise<any>
 {
 	if (live.errorCode==0)
 	{
-		let filename=createFilename(live)+".ts"
+		let filename=createFilename(live)+"."+settings.videoFormat
 
 		let exists=await dos.exists(filename)
 
@@ -311,13 +321,14 @@ export async function downloadLiveStream(live:Younow.LiveBroadcast):Promise<any>
 							},(err,buffers:Array<Buffer>)=>
 							{
 								log(`WATCH ${filename}`)
-								let stream=_fs.createWriteStream(filename)
+
+								let stream=new VideoWriter(filename,settings.useFFMPEG)
 
 								for (let buffer of buffers)
 								{
 									if (buffer)
 									{
-										stream.write(buffer)
+										stream.write(buffer,null)
 									}
 								}
 
@@ -359,7 +370,7 @@ export async function downloadLiveStream(live:Younow.LiveBroadcast):Promise<any>
 									})
 								},err=>
 								{
-									stream.end(err=>
+									stream.close(err=>
 									{
 										promisify(true)
 									})
@@ -368,7 +379,13 @@ export async function downloadLiveStream(live:Younow.LiveBroadcast):Promise<any>
 						})
 						.then(()=>
 						{
-							return moveFile(filename)
+							return new Promise((resolve,reject)=>
+							{
+								setTimeout(()=>
+								{
+									resolve(moveFile(filename))
+								},10000)
+							})
 						})
 					}
 					else
@@ -432,7 +449,7 @@ export function createFilename(live:Younow.LiveBroadcast)
 {
 	let filename=_path.join(settings.pathDownload,`${live.country||"XX"}_${live.profile}_${formatDateTime(new Date((live.dateStarted||live.dateCreated||Date.now()/1000)*1000))}_${live.broadcastId}`)
 
-	info("createFilename",filename)
+	debug("createFilename",filename)
 
 	return filename
 }

@@ -38,7 +38,7 @@ function update_scan(db) {
                 else if (!infos.items) {
                     throw new Error(`WTF`);
                 }
-                module_utils_1.info(`Tag:${tag} Users:${infos.items.length}`);
+                module_utils_1.debug(`Tag:${tag} Users:${infos.items.length}`);
                 infos.items.forEach(function (user) {
                     var liveuser = liveusers[user.userId];
                     if (!liveuser) {
@@ -78,7 +78,7 @@ function update_scan(db) {
                         // 1st pass
                         liveuser.check++;
                         var result = runScript(null, user, liveuser.infos);
-                        module_utils_1.info(`1ST ${liveuser.check}:${liveuser.infos ? "*" : ""} ${result} ${user.profile} BC:${liveuser.infos && liveuser.infos.broadcastsCount} Level:${user.userlevel} VW:${user.viewers}/${user.views} Language:${user.l}`);
+                        module_utils_1.debug(`1ST ${liveuser.check}:${liveuser.infos ? "*" : ""} ${result} ${user.profile} BC:${liveuser.infos && liveuser.infos.broadcastsCount} Level:${user.userlevel} VW:${user.viewers}/${user.views} Language:${user.l}`);
                         if (result == "follow") {
                             liveuser.isFollowed = true;
                         }
@@ -137,7 +137,7 @@ function update_scan(db) {
                                 throw new Error("WTF");
                             }
                             else {
-                                module_utils_1.log(`MATCH ${user.profile} Viewers:${infos.viewers}/${user.viewers} ${infos.country} BC:${infos.broadcastsCount} Partner:${infos.partner} Platform:${infos.platform}`);
+                                module_utils_1.log(`MATCH ${user.profile} Viewers:${infos.viewers}/${user.viewers} ${infos.country} state:${infos.stateCopy + " " + infos.state} BC:${infos.broadcastsCount} Partner:${infos.partner} Platform:${infos.platform}`);
                                 liveuser.infos = infos;
                                 liveuser.broadcastId = user.broadcastId;
                                 return _younow.downloadThemAll(infos)
@@ -155,7 +155,7 @@ function update_scan(db) {
                 .catch(module_utils_1.error)
                 .then(function () {
                 if (new_resolve)
-                    module_utils_1.info(`result new users:${new_users} resolve:${new_resolve}`);
+                    module_utils_1.debug(`result new users:${new_users} resolve:${new_resolve}`);
             });
         });
     })

@@ -120,6 +120,33 @@ Increase verbosity level (all commands)
 -vv debug messages (in green) network
 -vvv dump json requests
 
+### --fmt videoformat
+
+Set the video output format (use FFMPEG)
+
+	younow --fmt mp4 scan script.js
+	younow --fmt mkv vcr user
+
+MP4 will add "-bsf:a aac_adtstoasc" for compatibility
+
+default FFMPEG args are :
+
+-hide_banner // no banner
+-loglevel error // silence
+-c copy // copy stream without reencoding
+-video_track_timescale 0 // some broadcasters need this (corrupted videos)
+
+**FFMPEG MUST BE IN YOUR PATH (on Windows) OR INSTALLED (on Linux)**
+
+### --ffmpeg commandLine (advanced)
+
+Use ffmpeg to encode the video.
+
+	younow --fmt mkv --ffmpeg "-s 320x240 -r 30 -an" vcr user
+	younow --fmt avi --ffmpeg "-vcodec libxvid -acodec libmp3lame" scan script.js
+
+**FFMPEG MUST BE IN YOUR PATH (on Windows) OR INSTALLED (on Linux)**
+
 > `younow -v add user`
 
 ### -h --help

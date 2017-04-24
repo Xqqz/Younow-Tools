@@ -2,7 +2,7 @@
 "use strict";
 const _fs = require("fs");
 const _path = require("path");
-const _cli = require("commander");
+const commander = require("commander");
 let pkg = require("../package.json");
 exports.settings = {
     version: pkg.version,
@@ -11,7 +11,11 @@ exports.settings = {
     pathMove: null,
     dbBroadcasters: null,
     pathConfig: _path.join(process.env.APPDATA || process.env.HOME, "YounowTools"),
-    parallelDownloads: null
+    parallelDownloads: null,
+    useFFMPEG: null,
+    FFMPEG_DEFAULT: "-hide_banner -loglevel error -c copy -video_track_timescale 0",
+    videoFormat: null,
+    args: null
 };
 const module_utils_1 = require("./module_utils");
 const module_db_1 = require("./module_db");
@@ -45,82 +49,101 @@ if (!_fs.existsSync(exports.settings.pathConfig)) {
     module_utils_1.log("config path", exports.settings.pathConfig);
     _fs.mkdirSync(exports.settings.pathConfig);
 }
-_cli
+commander
     .version(exports.settings.version)
     .option("-v, --verbose", "verbosity level (-v -vv -vvv)", ((x, v) => v + 1), 0)
     .option("--db <path>", "database filename (default ./broadcasters.json")
     .option("--dl <path>", "download path (default current)")
     .option("--mv <path>", "at the end MOVE files to this path (default do nothing)")
     .option("-t --timer <minutes>", "scan interval (default 5 minutes)")
-    .option("-l --limit <number>", "number of parallel downloads for a stream (default 5)");
-//.option("-f --format <format","change video format container mkv/mp4 without re-encoding (default ts)")
-_cli
+    .option("-l --limit <number>", "number of parallel downloads for a stream (default 5)")
+    .option("--ffmpeg <arguments>", "use ffmpeg (must be in your path) to parse and write the video stream (advanced)", false)
+    .option("--fmt <format>", "change the output format (FFMPEG will be enabled)", "ts");
+commander
     .command("add <users...>")
     .description("add user(s) by username, uid, URL to db")
     .action((users, cmd) => commandId = CommandID.add);
-_cli
+commander
     .command("remove <users...>")
     .description("remove users(s) by username, uid, URL from db")
     .action((users, cmd) => commandId = CommandID.remove);
-_cli
+commander
     .command("ignore <users...>")
     .description("ignore/unignore users(s) by username, uid, URL from db")
     .action((users, cmd) => commandId = CommandID.ignore);
-_cli
+commander
     .command(`note <user> [text]`)
     .description(`add a "note" (quoted) to a user in db`)
     .action((users, cmd) => commandId = CommandID.annotation);
-_cli
+commander
     .command("search <patterns...>")
     .description("search in db for matching pattern(s)")
     .action((users, cmd) => commandId = CommandID.search);
-_cli
+commander
     .command("resolve <users...>")
     .description("resolve user(s) online")
     .action((users, cmd) => commandId = CommandID.resolve);
-_cli
+commander
     .command("vcr <users...>")
     .description("download archived broadcast if available")
     .action((users, cmd) => commandId = CommandID.vcr);
-_cli
+commander
     .command("live <users...>")
     .description("download live broadcast from the beginning")
     .action((users, cmd) => commandId = CommandID.live);
-_cli
+commander
     .command("broadcast <broadcastId...>")
     .description("download broadcastId ")
     .action((users, cmd) => commandId = CommandID.broadcast);
-_cli
+commander
     .command("scan <config_file>")
     .description("scan live broadcasts")
     .action((users, cmd) => commandId = CommandID.scan);
-_cli
+commander
     .command("api")
     .description("api compatibility test (advanced)")
     .action((users, cmd) => commandId = CommandID.api);
-_cli
+commander
     .command("fixdb")
     .description("normalize db informations (advanced)")
     .action((users, cmd) => commandId = CommandID.fixdb);
-_cli
-    .command("debug")
+commander
+    .command("debug [params...]")
     .description("debug tool ignore this")
     .action(() => commandId = CommandID.debug);
 // list
 // info user(s)
 let commandId = -1;
-_cli.parse(process.argv);
-let params = _cli.args[0]; // string|string[]
-module_utils_1.setVerbose(_cli["verbose"] || 0);
-exports.settings.pathDB = _cli["db"] || _path.join(exports.settings.pathConfig, "broadcasters.txt");
-exports.settings.pathDownload = _cli["dl"] || ".";
-exports.settings.pathMove = _cli["mv"] || null;
-exports.settings.parallelDownloads = _cli["limit"] || 5;
-module_utils_1.info(module_utils_1.prettify(exports.settings));
+commander.parse(process.argv);
+let params = commander.args[0]; // string|string[]
+module_utils_1.setVerbose(commander["verbose"] || 0);
+exports.settings.pathDB = commander["db"] || _path.join(exports.settings.pathConfig, "broadcasters.txt");
+exports.settings.pathDownload = commander["dl"] || ".";
+exports.settings.pathMove = commander["mv"] || null;
+exports.settings.parallelDownloads = commander["limit"] || 5;
+exports.settings.videoFormat = commander["fmt"];
+exports.settings.useFFMPEG = commander["ffmpeg"];
+exports.settings.args = params;
+if (exports.settings.videoFormat.toLowerCase() != "ts") {
+    if (!exports.settings.useFFMPEG) {
+        switch (exports.settings.videoFormat.toLowerCase()) {
+            case "mp4":
+                /** fix for mp */
+                exports.settings.useFFMPEG = exports.settings.FFMPEG_DEFAULT + " -bsf:a aac_adtstoasc";
+                break;
+            case "mkv":
+                exports.settings.useFFMPEG = exports.settings.FFMPEG_DEFAULT;
+                break;
+            default:
+                module_utils_1.error(`Video format ${exports.settings.videoFormat} not supported`);
+        }
+    }
+}
 if (exports.settings.pathMove) {
     _fs.existsSync(exports.settings.pathMove);
 }
 _fs.existsSync(exports.settings.pathDownload);
+module_utils_1.info(module_utils_1.prettify(exports.settings));
 /*
 
     main
@@ -128,7 +151,7 @@ _fs.existsSync(exports.settings.pathDownload);
 */
 switch (commandId) {
     case CommandID.scan:
-        cmd_scan_1.cmdScan(params, _cli["timer"] * 60 || 5 * 60 * 60);
+        cmd_scan_1.cmdScan(params, commander["timer"] * 60 || 5 * 60 * 60);
         break;
     case CommandID.search:
         cmd_search_1.cmdSearch(params);
@@ -137,7 +160,7 @@ switch (commandId) {
         cmd_search_1.cmdResolve(params);
         break;
     case CommandID.annotation:
-        cmd_annotation_1.cmdAnnotation(params, _cli.args[1] || "---");
+        cmd_annotation_1.cmdAnnotation(params, commander.args[1] || "---");
         break;
     case CommandID.vcr:
         cmd_vcr_1.cmdVCR(params);
@@ -181,7 +204,8 @@ switch (commandId) {
         break;
     case CommandID.debug:
         module_utils_1.log(pkg);
-        require("./cmd_debug").cmdDebug(params);
+        module_utils_1.log(commander);
+        //require("./cmd_debug").cmdDebug(params)
         break;
     default:
         module_utils_1.log(`
@@ -192,5 +216,5 @@ As an open source project use it at your own risk. Younow can break it down at a
 Report any bug or missing feature at your will.
 
 If you like this software, please consider a Ƀitcoin donation to 34fygtqeAP62xixpTj6w9XTtfKmqjFqpo6`);
-        _cli.help();
+        commander.help();
 }

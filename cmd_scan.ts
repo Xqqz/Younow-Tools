@@ -59,7 +59,7 @@ function update_scan(db)
 					throw new Error(`WTF`)
 				}
 
-				info(`Tag:${tag} Users:${infos.items.length}`)
+				debug(`Tag:${tag} Users:${infos.items.length}`)
 
 				infos.items.forEach(function(user)
 				{
@@ -118,7 +118,7 @@ function update_scan(db)
 
 						var result=runScript(null,user,liveuser.infos)
 
-						info(`1ST ${liveuser.check}:${liveuser.infos?"*":""} ${result} ${user.profile} BC:${liveuser.infos&&liveuser.infos.broadcastsCount} Level:${user.userlevel} VW:${user.viewers}/${user.views} Language:${user.l}`)
+						debug(`1ST ${liveuser.check}:${liveuser.infos?"*":""} ${result} ${user.profile} BC:${liveuser.infos&&liveuser.infos.broadcastsCount} Level:${user.userlevel} VW:${user.viewers}/${user.views} Language:${user.l}`)
 
 						if (result=="follow")
 						{
@@ -205,7 +205,7 @@ function update_scan(db)
 							}
 							else
 							{
-								log(`MATCH ${user.profile} Viewers:${infos.viewers}/${user.viewers} ${infos.country} BC:${infos.broadcastsCount} Partner:${infos.partner} Platform:${infos.platform}`)
+								log(`MATCH ${user.profile} Viewers:${infos.viewers}/${user.viewers} ${infos.country} state:${infos.stateCopy+" "+infos.state} BC:${infos.broadcastsCount} Partner:${infos.partner} Platform:${infos.platform}`)
 								liveuser.infos=infos
 								liveuser.broadcastId=user.broadcastId
 
@@ -226,7 +226,7 @@ function update_scan(db)
 			.catch(error)
 			.then(function()
 			{
-				if (new_resolve) info(`result new users:${new_users} resolve:${new_resolve}`)
+				if (new_resolve) debug(`result new users:${new_users} resolve:${new_resolve}`)
 			})
 		})
 	})

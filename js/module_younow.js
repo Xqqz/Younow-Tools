@@ -1,5 +1,4 @@
 "use strict";
-const _fs = require("fs");
 const _path = require("path");
 const _async = require("async");
 const _progress = require("progress");
@@ -7,6 +6,7 @@ const younow_1 = require("./younow");
 const module_utils_1 = require("./module_utils");
 const module_db_1 = require("./module_db");
 const dos = require("./module_promises");
+const module_ffmpeg_1 = require("./module_ffmpeg");
 // CDN=400 API=200 https://cdn.younow.com/php/api/broadcast/info/user=XXX
 const API_URL = "https://api.younow.com";
 function extractUser(user) {
@@ -134,7 +134,7 @@ async function downloadArchive(user, bid, started) {
     fix.broadcastId = bid;
     fix.country = user.country;
     fix.awsUrl = archive.broadcastThumbnail;
-    let video_filename = createFilename(archive) + ".ts";
+    let video_filename = createFilename(archive) + "." + younow_1.settings.videoFormat;
     await saveJSON(archive);
     await downloadThumbnail(archive);
     let exists = await dos.exists(video_filename);
@@ -171,18 +171,23 @@ async function downloadArchive(user, bid, started) {
                         next(null, null);
                     });
                 }, (err, buffers) => {
-                    let stream = _fs.createWriteStream(video_filename);
+                    let stream = new module_ffmpeg_1.VideoWriter(video_filename, younow_1.settings.useFFMPEG);
                     for (let buffer of buffers) {
                         if (buffer) {
-                            stream.write(buffer);
+                            stream.write(buffer, null);
                         }
                     }
-                    stream.end();
-                    resolve(true);
+                    stream.close(err => {
+                        resolve(true);
+                    });
                 });
             })
                 .then(err => {
-                return moveFile(video_filename);
+                return new Promise((resolve, reject) => {
+                    setTimeout(() => {
+                        resolve(moveFile(video_filename));
+                    }, 10000);
+                });
             });
         });
     }
@@ -204,7 +209,7 @@ exports.downloadThemAll = downloadThemAll;
  */
 async function downloadLiveStream(live) {
     if (live.errorCode == 0) {
-        let filename = createFilename(live) + ".ts";
+        let filename = createFilename(live) + "." + younow_1.settings.videoFormat;
         let exists = await dos.exists(filename);
         if (!exists) {
             return getPlaylist(live.broadcastId)
@@ -227,10 +232,10 @@ async function downloadLiveStream(live) {
                                 });
                             }, (err, buffers) => {
                                 module_utils_1.log(`WATCH ${filename}`);
-                                let stream = _fs.createWriteStream(filename);
+                                let stream = new module_ffmpeg_1.VideoWriter(filename, younow_1.settings.useFFMPEG);
                                 for (let buffer of buffers) {
                                     if (buffer) {
-                                        stream.write(buffer);
+                                        stream.write(buffer, null);
                                     }
                                 }
                                 let interval = 0;
@@ -258,14 +263,18 @@ async function downloadLiveStream(live) {
                                         }
                                     });
                                 }, err => {
-                                    stream.end(err => {
+                                    stream.close(err => {
                                         promisify(true);
                                     });
                                 });
                             });
                         })
                             .then(() => {
-                            return moveFile(filename);
+                            return new Promise((resolve, reject) => {
+                                setTimeout(() => {
+                                    resolve(moveFile(filename));
+                                }, 10000);
+                            });
                         });
                     }
                     else {
@@ -316,7 +325,7 @@ exports.saveJSON = saveJSON;
 */
 function createFilename(live) {
     let filename = _path.join(younow_1.settings.pathDownload, `${live.country || "XX"}_${live.profile}_${module_utils_1.formatDateTime(new Date((live.dateStarted || live.dateCreated || Date.now() / 1000) * 1000))}_${live.broadcastId}`);
-    module_utils_1.info("createFilename", filename);
+    module_utils_1.debug("createFilename", filename);
     return filename;
 }
 exports.createFilename = createFilename;
