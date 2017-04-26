@@ -1,5 +1,3 @@
 TODO :
 
 network : randomize user agent header
-streams : ffmpeg pass through for fixing & change containers
-scan : update db if modified

@@ -1,4 +1,5 @@
 "use strict";
+const younow_1 = require("./younow");
 const fs = require("fs");
 const vm = require("vm");
 const module_utils_1 = require("./module_utils");
@@ -10,12 +11,16 @@ let script = null;
 function cmdScan(script_file, scan_interval) {
     module_utils_1.info("scan interval", scan_interval);
     module_db_1.openDB()
-        .then(db => {
+        .then((db) => {
         script = parseScript(script_file);
         setInterval(() => {
             update_scan(db);
         }, scan_interval * 1000);
         update_scan(db);
+        fs.watchFile(younow_1.settings.pathDB, (curr, prev) => {
+            module_utils_1.error(`DATABASE UPDATED`);
+            db.self.update();
+        });
     })
         .catch(module_utils_1.error);
 }
@@ -53,6 +58,22 @@ function update_scan(db) {
                                 check: 0
                             };
                     }
+                    let dbuser = db[user.userId];
+                    if (dbuser) {
+                        if (dbuser.ignore) {
+                            if (liveuser.isIgnored == false) {
+                                module_utils_1.log(`${user.profile} is ignored`);
+                                liveuser.isIgnored = true;
+                            }
+                            liveuser.isFollowed = false;
+                            return;
+                        }
+                        else if (liveuser.isFollowed == false) {
+                            module_utils_1.log(`${user.profile} is live note:${dbuser.comment}`);
+                            liveuser.isFollowed = true;
+                            liveuser.isIgnored = false;
+                        }
+                    }
                     if (liveuser.isFollowed) {
                         if (liveuser.broadcastId == user.broadcastId) {
                             return;
@@ -61,18 +82,6 @@ function update_scan(db) {
                     }
                     else if (liveuser.isIgnored) {
                         return;
-                    }
-                    else if (user.userId in db) {
-                        let dbuser = db[user.userId];
-                        if (dbuser.ignore) {
-                            module_utils_1.log(`${user.profile} is ignored`);
-                            liveuser.isIgnored = true;
-                            return;
-                        }
-                        else {
-                            module_utils_1.log(`${user.profile} is live note:${dbuser.comment}`);
-                            liveuser.isFollowed = true;
-                        }
                     }
                     else {
                         // 1st pass
@@ -116,7 +125,7 @@ function update_scan(db) {
                             throw new Error(`${infos.errorCode} ${infos.errorMsg}`);
                         }
                         liveuser.infos = infos;
-                        if (!liveuser.isFollowed) {
+                        if (liveuser.isFollowed == false) {
                             // 2nd pass with more informations
                             liveuser.check++;
                             var result = runScript(null, user, infos) || null;
@@ -133,20 +142,15 @@ function update_scan(db) {
                             }
                         }
                         if (liveuser.isFollowed) {
-                            if (liveuser.broadcastId == user.broadcastId) {
-                                throw new Error("WTF");
-                            }
-                            else {
-                                module_utils_1.log(`MATCH ${user.profile} Viewers:${infos.viewers}/${user.viewers} ${infos.country} state:${infos.stateCopy + " " + infos.state} BC:${infos.broadcastsCount} Partner:${infos.partner} Platform:${infos.platform}`);
-                                liveuser.infos = infos;
-                                liveuser.broadcastId = user.broadcastId;
-                                return _younow.downloadThemAll(infos)
-                                    .then(([thumb, video, json]) => {
-                                    module_utils_1.log(`${user.profile} is over json : ${thumb} image : ${video} video :${json}`);
-                                }, err => {
-                                    module_utils_1.error(err);
-                                });
-                            }
+                            module_utils_1.log(`MATCH ${user.profile} Viewers:${infos.viewers}/${user.viewers} ${infos.country} state:${infos.stateCopy + " " + infos.state} BC:${infos.broadcastsCount} Partner:${infos.partner} Platform:${infos.platform}`);
+                            liveuser.infos = infos;
+                            liveuser.broadcastId = user.broadcastId;
+                            return _younow.downloadThemAll(infos)
+                                .then(([thumb, video, json]) => {
+                                module_utils_1.log(`${user.profile} is over json : ${thumb} image : ${video} video :${json}`);
+                            }, err => {
+                                module_utils_1.error(err);
+                            });
                         }
                     })
                         .catch(module_utils_1.error);

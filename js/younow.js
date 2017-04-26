@@ -203,9 +203,9 @@ switch (commandId) {
         cmd_ignore_1.cmdIgnore(params);
         break;
     case CommandID.debug:
-        module_utils_1.log(pkg);
-        module_utils_1.log(commander);
-        //require("./cmd_debug").cmdDebug(params)
+        //log(pkg)
+        //log(commander)
+        require("./cmd_debug").cmdDebug(params);
         break;
     default:
         module_utils_1.log(`

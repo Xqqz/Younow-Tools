@@ -1,54 +1,66 @@
 "use strict";
 const younow_1 = require("./younow");
+const module_utils_1 = require("./module_utils");
 const _fs = require("fs");
+const dos = require("./module_promises");
 class FakeDB {
     constructor() {
+        this.db = {
+            self: this
+        };
+        this.proxy = null;
     }
     /**
-     *
-     * @function	open
-     * @desc load or create db
-     * @return Promise<DB>
-     *
+     * Returns a proxified ref to this
+     * @param  {string}       filename [description]
+     * @param  {string}       title    [description]
+     * @return {Promise<any>}          [description]
      */
     open(filename, title) {
-        this._filename = filename;
-        this._title = title;
-        return new Promise((resolve, reject) => {
-            _fs.exists(filename, exists => {
-                if (exists) {
-                    _fs.readFile(filename, (err, data) => {
-                        if (err) {
-                            reject(err);
-                        }
-                        else {
-                            this.parse(data.toString().split("\n"));
-                            resolve(this.proxify());
-                        }
-                    });
-                }
-                else {
-                    _fs.appendFile(filename, `# ${title}\n`, (err) => {
-                        err ? reject(err) : resolve(this.proxify());
-                    });
-                }
-            });
+        this.filename = filename;
+        this.title = title;
+        return dos.exists(filename)
+            .then(exists => {
+            if (exists) {
+                return dos.readFile(filename)
+                    .then(data => {
+                    this.parse(this.db, data.toString().split("\n"));
+                    this.proxy = this.proxify(this.db);
+                    return this.proxy;
+                });
+            }
+            else {
+                return dos.appendFile(filename, `# ${title}\n`)
+                    .then(err => {
+                    this.proxy = this.proxify(this.db);
+                    return this.proxy;
+                });
+            }
         });
     }
-    proxify() {
-        return new Proxy(this, {
-            deleteProperty(obj, key) {
-                if (key in obj) {
-                    _fs.appendFile(obj._filename, `-${key}\n`, err => err);
-                    return delete obj[key];
+    update() {
+        dos.readFile(this.filename)
+            .then((data) => {
+            this.parse(this.db, data.toString().split("\n"));
+            module_utils_1.info(`DB broadcasters ${Object.keys(this.db).length}`);
+        })
+            .catch(module_utils_1.error);
+    }
+    /** @todo ugly */
+    proxify(obj) {
+        return new Proxy(obj, {
+            deleteProperty(target, key) {
+                if (key in target) {
+                    _fs.appendFile(target.self.filename, `-${key}\n`, err => err);
+                    return delete target[key];
                 }
                 else {
                     return true;
                 }
             },
-            set(obj, key, value, whatever) {
-                _fs.appendFile(obj._filename, `+${key}:${JSON.stringify(value)}\n`, err => err);
-                return obj[key] = value;
+            set(target, key, value, recv) {
+                _fs.appendFile(target.self.filename, `+${key}:${JSON.stringify(value)}\n`, err => err);
+                return target[key] = value;
             }
         });
     }
@@ -59,8 +71,7 @@ class FakeDB {
      * @return Object
      *
      */
-    parse(lines) {
-        let db = this;
+    parse(db, lines) {
         for (let line of lines) {
             let m = line.match(/([+-@])(\w+):*(.*)/);
             if (m) {

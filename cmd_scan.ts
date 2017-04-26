@@ -16,7 +16,7 @@ export function cmdScan(script_file:string,scan_interval:number)
 	info("scan interval",scan_interval)
 
 	openDB()
-	.then(db=>
+	.then((db:DB)=>
 	{
 		script=parseScript(script_file)
 
@@ -26,11 +26,17 @@ export function cmdScan(script_file:string,scan_interval:number)
 		},scan_interval*1000)
 
 		update_scan(db)
+
+		fs.watchFile(settings.pathDB,(curr,prev)=>
+		{
+			error(`DATABASE UPDATED`)
+			db.self.update()
+		})
 	})
 	.catch(error)
 }
 
-function update_scan(db)
+function update_scan(db:DB)
 {
 	_younow.getTrendings()
 	.then(function(trendings:Younow.Trendings)
@@ -80,6 +86,28 @@ function update_scan(db)
 						}
 					}
 
+					let dbuser=db[user.userId]
+
+					if (dbuser)
+					{
+						if (dbuser.ignore)
+						{
+							if (liveuser.isIgnored==false)
+							{
+								log(`${user.profile} is ignored`)
+								liveuser.isIgnored=true
+							}
+							liveuser.isFollowed=false
+							return
+						}
+						else if (liveuser.isFollowed==false)
+						{
+							log(`${user.profile} is live note:${dbuser.comment}`)
+							liveuser.isFollowed=true
+							liveuser.isIgnored=false
+						}
+					}
+
 					if (liveuser.isFollowed)
 					{
 						if (liveuser.broadcastId==user.broadcastId)
@@ -92,23 +120,6 @@ function update_scan(db)
 					else if (liveuser.isIgnored)
 					{
 						return
-					}
-					else if (user.userId in db)
-					{
-						let dbuser=db[user.userId]
-
-						if (dbuser.ignore)
-						{
-							log(`${user.profile} is ignored`)
-							liveuser.isIgnored=true
-							return
-						}
-						else
-						{
-							log(`${user.profile} is live note:${dbuser.comment}`)
-							liveuser.isFollowed=true
-						}
-
 					}
 					else
 					{
@@ -172,7 +183,7 @@ function update_scan(db)
 
 						liveuser.infos=infos
 
-						if (!liveuser.isFollowed)
+						if (liveuser.isFollowed==false)
 						{
 							// 2nd pass with more informations
 
@@ -199,25 +210,18 @@ function update_scan(db)
 
 						if (liveuser.isFollowed)
 						{
-							if (liveuser.broadcastId==user.broadcastId)
-							{
-								throw new Error("WTF")
-							}
-							else
-							{
-								log(`MATCH ${user.profile} Viewers:${infos.viewers}/${user.viewers} ${infos.country} state:${infos.stateCopy+" "+infos.state} BC:${infos.broadcastsCount} Partner:${infos.partner} Platform:${infos.platform}`)
-								liveuser.infos=infos
-								liveuser.broadcastId=user.broadcastId
+							log(`MATCH ${user.profile} Viewers:${infos.viewers}/${user.viewers} ${infos.country} state:${infos.stateCopy+" "+infos.state} BC:${infos.broadcastsCount} Partner:${infos.partner} Platform:${infos.platform}`)
+							liveuser.infos=infos
+							liveuser.broadcastId=user.broadcastId
 
-								return _younow.downloadThemAll(infos)
-								.then(([thumb,video,json])=>
-								{
-									log(`${user.profile} is over json : ${thumb} image : ${video} video :${json}`)
-								},err=>
-								{
-									error(err)
-								})
-							}
+							return _younow.downloadThemAll(infos)
+							.then(([thumb,video,json])=>
+							{
+								log(`${user.profile} is over json : ${thumb} image : ${video} video :${json}`)
+							},err=>
+							{
+								error(err)
+							})
 						}
 					})
 					.catch(error)

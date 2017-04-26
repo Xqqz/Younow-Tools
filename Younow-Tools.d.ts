@@ -442,4 +442,5 @@ interface DB
 {
 		//[index:string]:DBUser
 		[index:number]:DBUser
+		self:any
 }

@@ -79,6 +79,10 @@ Download broadcast(s) by its ID (number)
 -t number : scan interval in minute (default every 5 minutes)
 javascript_script : a javascript to analyze live broadcasters
 
+examples :
+https://github.com/UnCrevard/Younow-Tools/blob/master/js/script_example1.js
+https://github.com/UnCrevard/Younow-Tools/blob/master/js/script_example2.js
+
 > `younow -t 3 --dl z:\ --mv w:\ script.js`
 
 ### api
