@@ -1,4 +1,5 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 const younow_1 = require("./younow");
 const module_utils_1 = require("./module_utils");
 const _fs = require("fs");
@@ -10,12 +11,6 @@ class FakeDB {
         };
         this.proxy = null;
     }
-    /**
-     * Returns a proxified ref to this
-     * @param  {string}       filename [description]
-     * @param  {string}       title    [description]
-     * @return {Promise<any>}          [description]
-     */
     open(filename, title) {
         this.filename = filename;
         this.title = title;
@@ -46,7 +41,6 @@ class FakeDB {
         })
             .catch(module_utils_1.error);
     }
-    /** @todo ugly */
     proxify(obj) {
         return new Proxy(obj, {
             deleteProperty(target, key) {
@@ -64,13 +58,6 @@ class FakeDB {
             }
         });
     }
-    /**
-     *
-     * @function parse db
-     *
-     * @return Object
-     *
-     */
     parse(db, lines) {
         for (let line of lines) {
             let m = line.match(/([+-@])(\w+):*(.*)/);
@@ -100,15 +87,9 @@ function openDB() {
     return new FakeDB().open(younow_1.settings.pathDB, "Broadcasters");
 }
 exports.openDB = openDB;
-/** Search profile in the db
- *
- * @param {string|number}  profile/profileUrlString or userId
- * @return {DBUser|null}
- */
 function isUsernameInDB(db, user) {
     if (isNaN(user)) {
         var regex = new RegExp("^" + user + "$", "i");
-        /** @todo */
         for (let i of Object.keys(db)) {
             let dbuser = db[i];
             let profile = dbuser.profile;
@@ -125,12 +106,6 @@ function isUsernameInDB(db, user) {
     }
 }
 exports.isUsernameInDB = isUsernameInDB;
-/** Normalize user info
- *
- * @param {Younow.UserInfo}
- * @return {DBUser}
- *
- */
 function convertToUserDB(uid, user) {
     let dbuser = {
         ignore: user.ignore || false,

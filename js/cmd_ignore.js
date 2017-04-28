@@ -1,4 +1,5 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 const module_utils_1 = require("./module_utils");
 const module_db_1 = require("./module_db");
 const younow = require("./module_younow");
@@ -11,7 +12,7 @@ function cmdIgnore(users) {
             let userdb = module_db_1.isUsernameInDB(db, user);
             if (userdb) {
                 userdb.ignore = !userdb.ignore;
-                db[userdb.userId] = userdb; // writeDB
+                db[userdb.userId] = userdb;
                 module_utils_1.log(`${userdb.profile} in the db has been ${userdb.ignore ? "ignored" : "unignored"}`);
                 callback();
             }

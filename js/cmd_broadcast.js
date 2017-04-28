@@ -1,4 +1,5 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 const module_utils_1 = require("./module_utils");
 const module_db_1 = require("./module_db");
 const _younow = require("./module_younow");
@@ -8,7 +9,6 @@ function cmdBroadcast(bids) {
         .then((db) => {
         _async.eachSeries(bids, function (bid, cbAsync) {
             if (bid < 107942269) {
-                // Before HLS
                 module_utils_1.error(`${bid} 263 Replay no longer exists`);
                 cbAsync();
             }
@@ -25,7 +25,6 @@ function cmdBroadcast(bids) {
                                 module_utils_1.error(`${bid} ${user.errorCode} ${user.errorMsg}`);
                             }
                             else {
-                                /** @todo created ? */
                                 return _younow.downloadArchive(user, bid, new Date(archive.broadcastTitle).getTime() / 1000);
                             }
                         })

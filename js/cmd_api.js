@@ -1,4 +1,5 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 const _younow = require("./module_younow");
 const module_utils_1 = require("./module_utils");
 async function cmdAPI() {
@@ -20,9 +21,6 @@ async function cmdAPI() {
         module_utils_1.log(`getTagInfo:${await _younow.getTagInfo(tag.tag).then(x => x.errorCode ? x.errorMsg : "OK", module_utils_1.error)}`);
         module_utils_1.log(`getMoments:${await _younow.getMoments(user.userId, 0).then(x => x.errorCode ? x.errorMsg : "OK", module_utils_1.error)}`);
         module_utils_1.log(`getPlaylist:${await _younow.getPlaylist(user.broadcastId).then(x => x.length ? "OK" : "Error", module_utils_1.error)}`);
-        //log(`downloadThumbnail:${await _younow.downloadThumbnail(user,live).then(x=>x?"OK":"Error",error)}`)
-        //log(`saveJSON:${await _younow.saveJSON(user,live).then(x=>x?"OK":"Error",error)}`)
-        //log(`downloadLiveStream:${await _younow.downloadLiveStream(live).then(x=>x?"OK":"Error",error)}`)
     })
         .catch(module_utils_1.error);
 }

@@ -1,4 +1,5 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 const _younow = require("./module_younow");
 const _async = require("async");
 const module_utils_1 = require("./module_utils");

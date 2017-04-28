@@ -1,10 +1,11 @@
 import {settings} from "./younow"
 import * as fs from "fs"
+import * as _path from "path"
 import * as vm from "vm"
 import {execFile} from "child_process"
 import {log,info,debug,dump,error} from "./module_utils"
 import * as _younow from "./module_younow"
-import {openDB} from "./module_db"
+import {FakeDB,openDB} from "./module_db"
 
 // global
 
@@ -15,28 +16,33 @@ export function cmdScan(script_file:string,scan_interval:number)
 {
 	info("scan interval",scan_interval)
 
-	openDB()
-	.then((db:DB)=>
+	new FakeDB()
+	.open(_path.join(settings.pathConfig,"streams.txt"),"streams")
+	.then(streams=>
 	{
-		script=parseScript(script_file)
-
-		setInterval(()=>
+		return openDB()
+		.then((db:DB)=>
 		{
-			update_scan(db)
-		},scan_interval*1000)
+			script=parseScript(script_file)
 
-		update_scan(db)
+			setInterval(()=>
+			{
+				update_scan(db,streams)
+			},scan_interval*1000)
 
-		fs.watchFile(settings.pathDB,(curr,prev)=>
-		{
-			error(`DATABASE UPDATED`)
-			db.self.update()
+			update_scan(db,streams)
+
+			fs.watchFile(settings.pathDB,(curr,prev)=>
+			{
+				error(`DATABASE UPDATED`)
+				db.self.update()
+			})
 		})
 	})
 	.catch(error)
 }
 
-function update_scan(db:DB)
+function update_scan(db:DB,streams:Array<any>)
 {
 	_younow.getTrendings()
 	.then(function(trendings:Younow.Trendings)
@@ -84,6 +90,20 @@ function update_scan(db:DB)
 							infos:null,
 							check:0
 						}
+					}
+
+					if (user.userId in streams)
+					{
+						if (streams[user.userId].indexOf(user.broadcastId)<0)
+						{
+							let items=streams[user.userId]
+							items.push(user.broadcastId)
+							streams[user.userId]=items
+						}
+					}
+					else
+					{
+						streams[user.userId]=[user.broadcastId]
 					}
 
 					let dbuser=db[user.userId]

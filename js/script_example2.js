@@ -1,11 +1,5 @@
-/**
- *
- * you can't use return at 1st level. create a function or something.
- *
- *
- */
 if (tag) {
-    true; // all tags
+    true;
 }
 else if (user) {
     if (user.viewers > 100) {

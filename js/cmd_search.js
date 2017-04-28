@@ -1,4 +1,5 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 const module_utils_1 = require("./module_utils");
 const module_db_1 = require("./module_db");
 const younow = require("./module_younow");
@@ -9,7 +10,6 @@ function cmdSearch(patterns) {
         _async.eachSeries(patterns, function (user, callback) {
             user = younow.extractUser(user);
             let regex = new RegExp(user, "i");
-            /** @todo */
             Object.keys(db).forEach(key => {
                 let dbuser = db[key];
                 if (dbuser.userId) {

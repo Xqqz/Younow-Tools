@@ -1,4 +1,5 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 const module_utils_1 = require("./module_utils");
 const module_db_1 = require("./module_db");
 const _younow = require("./module_younow");

@@ -1,35 +1,39 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 const younow_1 = require("./younow");
 const fs = require("fs");
+const _path = require("path");
 const vm = require("vm");
 const module_utils_1 = require("./module_utils");
 const _younow = require("./module_younow");
 const module_db_1 = require("./module_db");
-// global
 let liveusers = {};
 let script = null;
 function cmdScan(script_file, scan_interval) {
     module_utils_1.info("scan interval", scan_interval);
-    module_db_1.openDB()
-        .then((db) => {
-        script = parseScript(script_file);
-        setInterval(() => {
-            update_scan(db);
-        }, scan_interval * 1000);
-        update_scan(db);
-        fs.watchFile(younow_1.settings.pathDB, (curr, prev) => {
-            module_utils_1.error(`DATABASE UPDATED`);
-            db.self.update();
+    new module_db_1.FakeDB()
+        .open(_path.join(younow_1.settings.pathConfig, "streams.txt"), "streams")
+        .then(streams => {
+        return module_db_1.openDB()
+            .then((db) => {
+            script = parseScript(script_file);
+            setInterval(() => {
+                update_scan(db, streams);
+            }, scan_interval * 1000);
+            update_scan(db, streams);
+            fs.watchFile(younow_1.settings.pathDB, (curr, prev) => {
+                module_utils_1.error(`DATABASE UPDATED`);
+                db.self.update();
+            });
         });
     })
         .catch(module_utils_1.error);
 }
 exports.cmdScan = cmdScan;
-function update_scan(db) {
+function update_scan(db, streams) {
     _younow.getTrendings()
         .then(function (trendings) {
         let tags = trendings.trending_tags.filter(function (tag) {
-            // 1st pass tag filtering
             return runScript(tag, null, null) || false;
         }).map(tag => tag.tag);
         var new_users = 0;
@@ -58,6 +62,16 @@ function update_scan(db) {
                                 check: 0
                             };
                     }
+                    if (user.userId in streams) {
+                        if (streams[user.userId].indexOf(user.broadcastId) < 0) {
+                            let items = streams[user.userId];
+                            items.push(user.broadcastId);
+                            streams[user.userId] = items;
+                        }
+                    }
+                    else {
+                        streams[user.userId] = [user.broadcastId];
+                    }
                     let dbuser = db[user.userId];
                     if (dbuser) {
                         if (dbuser.ignore) {
@@ -84,7 +98,6 @@ function update_scan(db) {
                         return;
                     }
                     else {
-                        // 1st pass
                         liveuser.check++;
                         var result = runScript(null, user, liveuser.infos);
                         module_utils_1.debug(`1ST ${liveuser.check}:${liveuser.infos ? "*" : ""} ${result} ${user.profile} BC:${liveuser.infos && liveuser.infos.broadcastsCount} Level:${user.userlevel} VW:${user.viewers}/${user.views} Language:${user.l}`);
@@ -126,7 +139,6 @@ function update_scan(db) {
                         }
                         liveuser.infos = infos;
                         if (liveuser.isFollowed == false) {
-                            // 2nd pass with more informations
                             liveuser.check++;
                             var result = runScript(null, user, infos) || null;
                             if (result == "follow") {
@@ -137,7 +149,6 @@ function update_scan(db) {
                                 return;
                             }
                             else {
-                                // waiting
                                 return;
                             }
                         }

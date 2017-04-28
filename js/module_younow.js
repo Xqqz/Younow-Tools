@@ -1,4 +1,5 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 const _path = require("path");
 const _async = require("async");
 const _progress = require("progress");
@@ -7,11 +8,8 @@ const module_utils_1 = require("./module_utils");
 const module_db_1 = require("./module_db");
 const dos = require("./module_promises");
 const module_ffmpeg_1 = require("./module_ffmpeg");
-// CDN=400 API=200 https://cdn.younow.com/php/api/broadcast/info/user=XXX
 const API_URL = "https://api.younow.com";
 function extractUser(user) {
-    /** @todo filtering illegal/HTML chars */
-    // string : 0-9 a-z . - _
     if (isNaN(user)) {
         var pos = user.lastIndexOf("/");
         return (pos < 0) ? user : user.substring(pos + 1);
@@ -21,18 +19,6 @@ function extractUser(user) {
     }
 }
 exports.extractUser = extractUser;
-// errorCode: 101, errorMsg: 'Invalid user Id
-// 	errorCode: 5501, errorMsg: 'Invalid channel ID'
-//
-// `https://api.younow.com/php/api/broadcast/info/channelId=${user}`
-/**
- *
- * async get user from db / online
- *
- * @param {string|number} profile|userId
- * @return Promise<Younow.UserInfo|DBUser>
- *
- */
 function resolveUser(db, user) {
     let userdb = module_db_1.isUsernameInDB(db, user);
     if (userdb) {
@@ -59,7 +45,6 @@ function resolveUser(db, user) {
                     return infos;
                 }
                 else {
-                    /** non existing uid */
                     infos.errorCode = 101;
                     infos.errorMsg = "Invalid user Id";
                     return infos;
@@ -69,13 +54,7 @@ function resolveUser(db, user) {
     }
 }
 exports.resolveUser = resolveUser;
-/**
- *
- * @function async
- *
- */
 function getUserInfoByUID(uid) {
-    // /includeUserKeyWords=1
     return module_utils_1.getURL(`${API_URL}/php/api/channel/getInfo/channelId=${uid}`);
 }
 exports.getUserInfoByUID = getUserInfoByUID;
@@ -87,19 +66,7 @@ function getLiveBroadcastByUID(uid) {
     return module_utils_1.getURL(`${API_URL}/php/api/broadcast/info/channelId=${uid}`);
 }
 exports.getLiveBroadcastByUID = getLiveBroadcastByUID;
-//** @async {uid} get past broadcasts*/
-/*
-export function getArchivedBroadcasts(uid):Promise<any>
-{
-    //return getURL(`https://api.younow.com/php/api/post/getBroadcasts/startFrom=0/channelId=${uid}`)
-    //return getURL(`https://api.younow.com/php/api/broadcast/~channelId=${uid}`)
-    //return getURL(`https://cdn2.younow.com/php/api/post/getBroadcasts/startFrom=0/channelId=${uid}`)
-
-    return Promise.reject(null)
-}
-*/
 function getArchivedBroadcast(bid) {
-    // errorCode:246/Broadcast is still live
     return module_utils_1.getURL(`${API_URL}/php/api/broadcast/videoPath/broadcastId=${bid}`);
 }
 exports.getArchivedBroadcast = getArchivedBroadcast;
@@ -108,7 +75,6 @@ function getMoments(uid, next) {
 }
 exports.getMoments = getMoments;
 function getTrendings() {
-    // cdn2
     return module_utils_1.getURL(`${API_URL}/php/api/younow/dashboard/locale=en/trending=50`);
 }
 exports.getTrendings = getTrendings;
@@ -116,11 +82,6 @@ function getTagInfo(tag) {
     return module_utils_1.getURL(`https://playdata.younow.com/live/tags/${new Buffer(tag).toString("base64")}.json`);
 }
 exports.getTagInfo = getTagInfo;
-/**
- *
- * @function downloadArchive - download archived broadcast
- * @return Promise<any>
- */
 async function downloadArchive(user, bid, started) {
     module_utils_1.info("downloadArchive", user.profile, bid);
     let archive = await getArchivedBroadcast(bid);
@@ -167,7 +128,6 @@ async function downloadArchive(user, bid, started) {
                         bar.tick();
                         next(null, buffer);
                     }, err => {
-                        //bar.tick()
                         next(null, null);
                     });
                 }, (err, buffers) => {
@@ -197,16 +157,10 @@ function getPlaylist(bid) {
     return module_utils_1.getURL(`${API_URL}/php/api/broadcast/videoPath/hls=1/broadcastId=${bid}`, "utf8");
 }
 exports.getPlaylist = getPlaylist;
-/** returns Promise<[json:boolean,image:boolean,video:boolean]> */
 function downloadThemAll(live) {
     return Promise.all([saveJSON(live), downloadThumbnail(live), downloadLiveStream(live)]);
 }
 exports.downloadThemAll = downloadThemAll;
-/**
- * @todo cleanup
- * downloadLiveStream- download live broadcast
- * returns Promise<whatever>
- */
 async function downloadLiveStream(live) {
     if (live.errorCode == 0) {
         let filename = createFilename(live) + "." + younow_1.settings.videoFormat;
@@ -252,7 +206,6 @@ async function downloadLiveStream(live) {
                                             setTimeout(next, interval);
                                         });
                                     }, err => {
-                                        // 403
                                         fail++;
                                         if (fail < 10 && err == 403) {
                                             interval += step;
@@ -318,11 +271,6 @@ async function saveJSON(live) {
     return false;
 }
 exports.saveJSON = saveJSON;
-/*
-*
-* returns std filename
-*
-*/
 function createFilename(live) {
     let filename = _path.join(younow_1.settings.pathDownload, `${live.country || "XX"}_${live.profile}_${module_utils_1.formatDateTime(new Date((live.dateStarted || live.dateCreated || Date.now() / 1000) * 1000))}_${live.broadcastId}`);
     module_utils_1.debug("createFilename", filename);

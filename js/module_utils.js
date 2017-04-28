@@ -1,7 +1,7 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 const https = require("https");
 const request = require("request");
-// this is module
 var fix = https;
 fix.globalAgent.keepAlive = true;
 fix.globalAgent.keepAliveMsecs = 10000;
@@ -19,7 +19,7 @@ var Verbosity;
     Verbosity[Verbosity["log"] = 0] = "log";
     Verbosity[Verbosity["info"] = 1] = "info";
     Verbosity[Verbosity["debug"] = 2] = "debug";
-    Verbosity[Verbosity["dump"] = 3] = "dump"; // red json
+    Verbosity[Verbosity["dump"] = 3] = "dump";
 })(Verbosity || (Verbosity = {}));
 exports.verbose = 0;
 function setVerbose(level) {
@@ -61,13 +61,6 @@ function prettify(obj) {
     return JSON.stringify(obj, null, "\t").replace(/,|{|}|\"/g, "");
 }
 exports.prettify = prettify;
-/**
- * async getURL
- *
- * @params {string} url
- * @params {string?} encoding string/json/null
- * @return {any}
- */
 function getURL(url, encoding = "json") {
     return new Promise(function (resolve, reject) {
         if (!url || url.length == 0) {
@@ -77,7 +70,6 @@ function getURL(url, encoding = "json") {
         }
         debug(`NET:${url} as ${encoding}`);
         get(url, function (err, res, body) {
-            // res.headers.connection='keep-alive'
             if (err) {
                 error(`NET ${err} ${url}`);
                 reject(new Error(err.message));

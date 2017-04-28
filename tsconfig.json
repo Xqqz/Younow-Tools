@@ -2,10 +2,11 @@
 	"compilerOptions":
 	{
 		"module": "commonjs",
-		"target":"es2017",
+		"target":"es2017", /* async */
 		"noImplicitAny": false,
 		"sourceMap": false,
-		"outDir":"js/"
+		"outDir":"js/",
+		"removeComments":true
 	},
 	"exclude":
 	[

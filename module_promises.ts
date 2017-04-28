@@ -49,3 +49,11 @@ export function rename(oldpath:string,newpath:string)
 		fs.rename(oldpath,newpath,err=>err?reject(err):resolve(err))
 	})
 }
+
+export function mkdir(path:string)
+{
+	return new Promise((resolve,reject)=>
+	{
+		fs.mkdir(path,err=>err?reject(err):resolve(err))
+	})
+}
