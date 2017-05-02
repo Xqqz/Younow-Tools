@@ -6,13 +6,13 @@
 
 Then launch your terminal (cmd.exe on windows) and install Younow-Tools with NPM :
 
-  **npm install -g younow-tools**
+>npm install -g younow-tools
 
 The command **younow** will be available in your console (cmd.exe or powershell.exe or bash)
 
 To update younow-tools just type :
 
-  **npm update -g
+>npm update -g
 
 ## Summary
 
@@ -36,13 +36,13 @@ Add broadcaster(s) to your local database :
 * database query
 * record their live broadcasts (scan mode)
 
-> `younow add user 1234 https://www.younow.com/user`
+>younow add user 1234 https://www.younow.com/user
 
 ### remove
 
 Remove user(s) from your database (removed but not ignored)
 
-> `younow remove 1234 somebody`
+>younow remove 1234 somebody
 
 ### ignore
 
@@ -52,19 +52,19 @@ Ignore/unignore broadcasters when they're broadcasting
 
 Add an annotation (comment) to a broadcaster in the database. Must be quoted
 
-> `younow note somebody "really funny"`
+>younow note somebody "really funny"
 
 ### search
 
 Search in the database for one or multiple regex pattern/string in all properties
 
-> `younow search sn.pch.t dude sexy https instagram funny youtube`
+>younow search sn.pch.t dude sexy https instagram funny youtube
 
 ### resolve
 
 Resolve broadcasters(s) and display some informations without adding them to the database
 
-> `younow resolve someone 12345 https://younow.com/user`
+>younow resolve someone 12345 https://younow.com/user
 
 ### vcr <user(s)>
 
@@ -87,7 +87,7 @@ examples :
 https://github.com/UnCrevard/Younow-Tools/blob/master/js/script_example1.js
 https://github.com/UnCrevard/Younow-Tools/blob/master/js/script_example2.js
 
-> `younow -t 3 --dl z:\ --mv w:\ script.js`
+>younow -t 3 --dl z:\ --mv w:\ script.js
 
 ### api
 
@@ -132,8 +132,8 @@ Increase verbosity level (all commands)
 
 Set the video output format (use FFMPEG)
 
-	younow --fmt mp4 scan script.js
-	younow --fmt mkv vcr user
+>younow --fmt mp4 scan script.js
+>younow --fmt mkv vcr user
 
 MP4 will add "-bsf:a aac_adtstoasc" for compatibility
 
@@ -150,12 +150,12 @@ default FFMPEG args are :
 
 Use ffmpeg to encode the video.
 
-	younow --fmt mkv --ffmpeg "-s 320x240 -r 30 -an" vcr user
-	younow --fmt avi --ffmpeg "-vcodec libxvid -acodec libmp3lame" scan script.js
+>younow --fmt mkv --ffmpeg "-s 320x240 -r 30 -an" vcr user
+>younow --fmt avi --ffmpeg "-vcodec libxvid -acodec libmp3lame" scan script.js
 
 **FFMPEG MUST BE IN YOUR PATH (on Windows) OR INSTALLED (on Linux)**
 
-> `younow -v add user`
+> younow -v add user
 
 ### -h --help
 
@@ -334,6 +334,6 @@ To compile the source (.ts) you need typescript (VSCode or Atom editor) and shar
 
 **Report any bug or missing feature at your will.**
 
-**If you like this software, please consider a Ƀitcoin donation to bitcoin://34fygtqeAP62xixpTj6w9XTtfKmqjFqpo6**
+**If you like this software, please consider a Bitcoin donation to bitcoin://34fygtqeAP62xixpTj6w9XTtfKmqjFqpo6**
 
 #Enjoy !
