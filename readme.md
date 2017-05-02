@@ -336,4 +336,4 @@ To compile the source (.ts) you need typescript (VSCode or Atom editor) and shar
 
 **If you like this software, please consider a Bitcoin donation to bitcoin://34fygtqeAP62xixpTj6w9XTtfKmqjFqpo6**
 
-#Enjoy !
+# Enjoy !
