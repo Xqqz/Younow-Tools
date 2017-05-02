@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const younow_1 = require("./younow");
+const main_1 = require("./main");
 const module_utils_1 = require("./module_utils");
 const _fs = require("fs");
 const dos = require("./module_promises");
@@ -84,7 +84,7 @@ class FakeDB {
 }
 exports.FakeDB = FakeDB;
 function openDB() {
-    return new FakeDB().open(younow_1.settings.pathDB, "Broadcasters");
+    return new FakeDB().open(main_1.settings.pathDB, "Broadcasters");
 }
 exports.openDB = openDB;
 function isUsernameInDB(db, user) {
@@ -143,3 +143,4 @@ function convertToUserDB(uid, user) {
     return dbuser;
 }
 exports.convertToUserDB = convertToUserDB;
+//# sourceMappingURL=module_db.js.map

@@ -41,3 +41,4 @@ function cmdIgnore(users) {
         .catch(module_utils_1.error);
 }
 exports.cmdIgnore = cmdIgnore;
+//# sourceMappingURL=cmd_ignore.js.map

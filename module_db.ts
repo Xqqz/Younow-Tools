@@ -1,4 +1,4 @@
-import {settings} from "./younow"
+import {settings} from "./main"
 
 import {log,info,debug,error} from "./module_utils"
 import * as _fs from "fs"

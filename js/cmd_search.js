@@ -46,3 +46,4 @@ function cmdResolve(users) {
         .catch(module_utils_1.error);
 }
 exports.cmdResolve = cmdResolve;
+//# sourceMappingURL=cmd_search.js.map

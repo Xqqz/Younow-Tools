@@ -57,3 +57,11 @@ export function mkdir(path:string)
 		fs.mkdir(path,err=>err?reject(err):resolve(err))
 	})
 }
+
+export function timeout(timeout:number)
+{
+	return new Promise((resolve,reject)=>
+	{
+		setTimeout(resolve,timeout)
+	})
+}

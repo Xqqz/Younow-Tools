@@ -9,3 +9,4 @@ else if (user) {
         "waiting";
     }
 }
+//# sourceMappingURL=script_example2.js.map

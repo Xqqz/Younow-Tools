@@ -51,3 +51,4 @@ try {
 catch (e) {
     e;
 }
+//# sourceMappingURL=script_example1.js.map

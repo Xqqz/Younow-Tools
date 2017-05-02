@@ -6,7 +6,19 @@ import * as _child from "child_process"
 import * as commander from "commander"
 import * as _async from "async"
 
+
 let pkg=require("../package.json")
+
+try
+{
+	// add source map support for typescript if available
+
+	require("source-map-support").install()
+}
+catch(e)
+{
+
+}
 
 export var settings:Settings=
 {
@@ -26,7 +38,6 @@ export var settings:Settings=
 import * as _younow from "./module_younow"
 import {log,info,debug,dump,error,formatDateTime,prettify,setVerbose} from "./module_utils"
 import {FakeDB,openDB,isUsernameInDB,convertToUserDB} from "./module_db"
-
 import {cmdAdd} from "./cmd_add"
 import {cmdAnnotation} from "./cmd_annotation"
 import {cmdAPI} from "./cmd_api"
@@ -148,8 +159,6 @@ async function main(args)
 	settings.parallelDownloads=commander["limit"]||5
 	settings.videoFormat=commander["fmt"]
 	settings.useFFMPEG=commander["ffmpeg"]
-	settings.args=params
-
 
 	if (!await dos.exists(settings.pathConfig))
 	{

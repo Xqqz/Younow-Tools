@@ -1,4 +1,4 @@
-import {settings} from "./younow"
+import {settings} from "./main"
 
 import {log,info,debug,error,getURL,prettify} from "./module_utils"
 import {openDB,isUsernameInDB} from "./module_db"

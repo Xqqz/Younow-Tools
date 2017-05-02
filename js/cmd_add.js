@@ -37,3 +37,4 @@ function cmdAdd(users) {
         .catch(module_utils_1.error);
 }
 exports.cmdAdd = cmdAdd;
+//# sourceMappingURL=cmd_add.js.map

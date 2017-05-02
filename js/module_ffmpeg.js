@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const fs = require("fs");
-const child = require("child_process");
+const child_process_1 = require("child_process");
 const module_utils_1 = require("./module_utils");
 class VideoWriter {
     constructor(filename, useFFMPEG) {
@@ -13,17 +13,15 @@ class VideoWriter {
             let params = `-i - ${useFFMPEG} ${filename}`.split(" ");
             module_utils_1.info(`FFMPEG : ${params.join(" ")}`);
             try {
-                this.ffmpeg = child.spawn("ffmpeg", params, {
-                    stdio: ["pipe", process.stdout, "pipe"]
+                this.ffmpeg = child_process_1.spawn("ffmpeg", params);
+                this.ffmpeg.on("error", err => {
+                    this.ffmpeg = null;
+                    module_utils_1.error(err);
                 });
                 this.ffmpeg.stderr.on("data", data => module_utils_1.error(data.toString()));
                 this.ffmpeg.on("close", result => {
                     this.ffmpeg = null;
                     module_utils_1.info("FFMPEG close", result);
-                });
-                this.ffmpeg.on("error", err => {
-                    this.ffmpeg = null;
-                    module_utils_1.error(err);
                 });
                 this.ffmpeg.on("exit", result => {
                     module_utils_1.info("FFMPEG exit", result);
@@ -47,12 +45,13 @@ class VideoWriter {
         }
     }
     write(data, callback) {
-        if (this.ffmpeg) {
+        if (this.ffmpeg && data) {
             this.ffmpeg.stdin.write(data, callback);
         }
-        else if (this.stream) {
+        else if (this.stream && data) {
             this.stream.write(data, callback);
         }
     }
 }
 exports.VideoWriter = VideoWriter;
+//# sourceMappingURL=module_ffmpeg.js.map

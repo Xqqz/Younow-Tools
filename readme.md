@@ -2,13 +2,17 @@
 
 ## Installation
 
-1st you need to install NodeJS [link](https://nodejs.org/en/download/current/ "**NodeJS**") download and install the >=v7.8.0 version.
+1st you need to install NodeJS [link](https://nodejs.org/en/download/current/ "**NodeJS**") download and install the LTS or Current.
 
-Then launch your terminal (cmd.exe) and install Younow-Tools with NPM :
+Then launch your terminal (cmd.exe on windows) and install Younow-Tools with NPM :
 
-**npm install -g younow-tools**
+  **npm install -g younow-tools**
 
 The command **younow** will be available in your console (cmd.exe or powershell.exe or bash)
+
+To update younow-tools just type :
+
+  **npm update -g
 
 ## Summary
 

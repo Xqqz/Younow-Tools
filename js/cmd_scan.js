@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const younow_1 = require("./younow");
+const main_1 = require("./main");
 const fs = require("fs");
 const _path = require("path");
 const vm = require("vm");
@@ -12,7 +12,7 @@ let script = null;
 function cmdScan(script_file, scan_interval) {
     module_utils_1.info("scan interval", scan_interval);
     new module_db_1.FakeDB()
-        .open(_path.join(younow_1.settings.pathConfig, "streams.txt"), "streams")
+        .open(_path.join(main_1.settings.pathConfig, "streams.txt"), "streams")
         .then(streams => {
         return module_db_1.openDB()
             .then((db) => {
@@ -21,7 +21,7 @@ function cmdScan(script_file, scan_interval) {
                 update_scan(db, streams);
             }, scan_interval * 1000);
             update_scan(db, streams);
-            fs.watchFile(younow_1.settings.pathDB, (curr, prev) => {
+            fs.watchFile(main_1.settings.pathDB, (curr, prev) => {
                 module_utils_1.error(`DATABASE UPDATED`);
                 db.self.update();
             });
@@ -153,6 +153,11 @@ function update_scan(db, streams) {
                             }
                         }
                         if (liveuser.isFollowed) {
+                            if (infos.lastSegmentId == undefined) {
+                                module_utils_1.error(`${infos.profile} not ready yet`);
+                                liveuser.infos = null;
+                                return;
+                            }
                             module_utils_1.log(`MATCH ${user.profile} Viewers:${infos.viewers}/${user.viewers} ${infos.country} state:${infos.stateCopy + " " + infos.state} BC:${infos.broadcastsCount} Partner:${infos.partner} Platform:${infos.platform}`);
                             liveuser.infos = infos;
                             liveuser.broadcastId = user.broadcastId;
@@ -197,3 +202,4 @@ function runScript(tag, user, broadcast) {
         return null;
     }
 }
+//# sourceMappingURL=cmd_scan.js.map

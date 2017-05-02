@@ -1,4 +1,4 @@
-import {settings} from "./younow"
+import {settings} from "./main"
 import * as fs from "fs"
 import * as _path from "path"
 import * as vm from "vm"
@@ -230,6 +230,15 @@ function update_scan(db:DB,streams:Array<any>)
 
 						if (liveuser.isFollowed)
 						{
+							if (infos.lastSegmentId==undefined)
+							{
+								/* fix Starting Soon... */
+
+								error(`${infos.profile} not ready yet`)
+								liveuser.infos=null
+								return
+							}
+
 							log(`MATCH ${user.profile} Viewers:${infos.viewers}/${user.viewers} ${infos.country} state:${infos.stateCopy+" "+infos.state} BC:${infos.broadcastsCount} Partner:${infos.partner} Platform:${infos.platform}`)
 							liveuser.infos=infos
 							liveuser.broadcastId=user.broadcastId

@@ -1,13 +1,21 @@
 "use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const _path = require("path");
 const _async = require("async");
 const _progress = require("progress");
-const younow_1 = require("./younow");
+const main_1 = require("./main");
 const module_utils_1 = require("./module_utils");
 const module_db_1 = require("./module_db");
 const dos = require("./module_promises");
-const module_ffmpeg_1 = require("./module_ffmpeg");
+const module_hls_1 = require("./module_hls");
 const API_URL = "https://api.younow.com";
 function extractUser(user) {
     if (isNaN(user)) {
@@ -82,75 +90,54 @@ function getTagInfo(tag) {
     return module_utils_1.getURL(`https://playdata.younow.com/live/tags/${new Buffer(tag).toString("base64")}.json`);
 }
 exports.getTagInfo = getTagInfo;
-async function downloadArchive(user, bid, started) {
-    module_utils_1.info("downloadArchive", user.profile, bid);
-    let archive = await getArchivedBroadcast(bid);
-    if (archive.errorCode) {
-        module_utils_1.error(`${user.profile} ${bid} ${archive.errorCode} ${archive.errorMsg}`);
-        return false;
-    }
-    let fix = archive;
-    fix.dateStarted = started;
-    fix.profile = user.profile;
-    fix.broadcastId = bid;
-    fix.country = user.country;
-    fix.awsUrl = archive.broadcastThumbnail;
-    let video_filename = createFilename(archive) + "." + younow_1.settings.videoFormat;
-    await saveJSON(archive);
-    await downloadThumbnail(archive);
-    let exists = await dos.exists(video_filename);
-    if (!exists) {
-        return module_utils_1.getURL(archive.hls, "utf8")
-            .then((playlist) => {
-            let m = playlist.match(/\d+\.ts/g);
-            if (!m) {
-                module_utils_1.error(playlist);
-                return false;
-            }
-            let total_segment = m.length;
-            m = archive.hls.match(/(https:.+)playlist.m3u8/i);
-            if (!m) {
-                module_utils_1.error(archive.hls);
-                return false;
-            }
-            let url = m[1];
-            let bar = new _progress(`${user.profile} ${bid} :bar :percent :elapseds/:etas :rate/bps`, {
-                total: total_segment,
-                width: 20,
-                complete: "●",
-                incomplete: "○",
-                clear: true
-            });
-            return new Promise(resolve => {
-                _async.timesLimit(total_segment, younow_1.settings.parallelDownloads, (segment, next) => {
-                    module_utils_1.getURL(`${url}${segment}.ts`, null)
-                        .then(buffer => {
-                        bar.tick();
-                        next(null, buffer);
-                    }, err => {
-                        next(null, null);
-                    });
-                }, (err, buffers) => {
-                    let stream = new module_ffmpeg_1.VideoWriter(video_filename, younow_1.settings.useFFMPEG);
-                    for (let buffer of buffers) {
-                        if (buffer) {
-                            stream.write(buffer, null);
-                        }
-                    }
-                    stream.close(err => {
-                        resolve(true);
-                    });
+function downloadArchive(user, bid, started) {
+    return __awaiter(this, void 0, void 0, function* () {
+        module_utils_1.info("downloadArchive", user.profile, bid);
+        let archive = yield getArchivedBroadcast(bid);
+        if (archive.errorCode) {
+            module_utils_1.error(`${user.profile} ${bid} ${archive.errorCode} ${archive.errorMsg}`);
+            return false;
+        }
+        let fix = archive;
+        fix.dateStarted = started || (new Date(archive.broadcastTitle).getTime() / 1000);
+        fix.profile = user.profile;
+        fix.broadcastId = bid;
+        fix.country = user.country;
+        fix.awsUrl = archive.broadcastThumbnail;
+        let video_filename = createFilename(archive) + "." + main_1.settings.videoFormat;
+        saveJSON(archive).catch(module_utils_1.error);
+        downloadThumbnail(archive).catch(module_utils_1.error);
+        let exists = yield dos.exists(video_filename);
+        if (!exists) {
+            return module_utils_1.getURL(archive.hls, "utf8")
+                .then((playlist) => {
+                let m = playlist.match(/\d+\.ts/g);
+                if (!m) {
+                    module_utils_1.error(playlist);
+                    return false;
+                }
+                let total_segment = m.length;
+                m = archive.hls.match(/(https:.+)playlist.m3u8/i);
+                if (!m) {
+                    module_utils_1.error(archive.hls);
+                    return false;
+                }
+                let url = m[1];
+                let bar = new _progress(`${user.profile} ${bid} :bar :percent :elapseds/:etas :rate/bps`, {
+                    total: total_segment,
+                    width: 20,
+                    complete: "●",
+                    incomplete: "○",
+                    clear: true
+                });
+                return module_hls_1.downloadSegments(url, video_filename, total_segment, bar, false)
+                    .then(err => {
+                    return moveFile(video_filename);
                 });
             })
-                .then(err => {
-                return new Promise((resolve, reject) => {
-                    setTimeout(() => {
-                        resolve(moveFile(video_filename));
-                    }, 10000);
-                });
-            });
-        });
-    }
+                .catch(module_utils_1.error);
+        }
+    });
 }
 exports.downloadArchive = downloadArchive;
 function getPlaylist(bid) {
@@ -161,126 +148,127 @@ function downloadThemAll(live) {
     return Promise.all([saveJSON(live), downloadThumbnail(live), downloadLiveStream(live)]);
 }
 exports.downloadThemAll = downloadThemAll;
-async function downloadLiveStream(live) {
-    if (live.errorCode == 0) {
-        let filename = createFilename(live) + "." + younow_1.settings.videoFormat;
-        let exists = await dos.exists(filename);
-        if (!exists) {
-            return getPlaylist(live.broadcastId)
-                .then((playlist) => {
-                let m = playlist.match(/https:.+\d+.ts/gi);
-                if (m) {
-                    m = m.pop().match(/(https:.+\/)(\d+).ts/i);
+function downloadLiveStream(live) {
+    return __awaiter(this, void 0, void 0, function* () {
+        if (live.errorCode == 0) {
+            let filename = createFilename(live) + "." + main_1.settings.videoFormat;
+            let exists = yield dos.exists(filename);
+            if (!exists) {
+                return getPlaylist(live.broadcastId)
+                    .then((playlist) => {
+                    let m = playlist.match(/https:.+\d+.ts/gi);
                     if (m) {
-                        let url = m[1];
-                        let current_segment = Number(m[2]);
-                        return new Promise(promisify => {
+                        module_utils_1.info(`M3U8 ${m.length} ${m[1]}`);
+                        m = m.pop().match(/(https:.+\/)(\d+).ts/i);
+                        if (m) {
+                            let url = m[1];
+                            let current_segment = Number(m[2]);
                             module_utils_1.log(`REWIND ${filename}`);
-                            _async.timesLimit(current_segment, younow_1.settings.parallelDownloads, (n, next) => {
-                                module_utils_1.getURL(`${url}${n}.ts`, null)
-                                    .then(buffer => {
-                                    next(false, buffer);
-                                }, err => {
-                                    module_utils_1.error(err);
-                                    next(false, null);
-                                });
-                            }, (err, buffers) => {
-                                module_utils_1.log(`WATCH ${filename}`);
-                                let stream = new module_ffmpeg_1.VideoWriter(filename, younow_1.settings.useFFMPEG);
-                                for (let buffer of buffers) {
-                                    if (buffer) {
-                                        stream.write(buffer, null);
-                                    }
+                            return module_hls_1.downloadSegments(url, filename, current_segment, null, true)
+                                .then((stream) => {
+                                if (!stream) {
+                                    return false;
                                 }
-                                let interval = 0;
-                                let fail = 0;
-                                let step = 250;
-                                let slow_down = 0.01;
-                                _async.forever(next => {
-                                    module_utils_1.getURL(`${url}${current_segment}.ts`, null)
-                                        .then(buffer => {
-                                        fail = 0;
-                                        interval = interval - interval * slow_down;
-                                        current_segment++;
-                                        stream.write(buffer, err => {
-                                            setTimeout(next, interval);
+                                return new Promise((resolve, reject) => {
+                                    let interval = 0;
+                                    let fail = 0;
+                                    let step = 250;
+                                    let slow_down = 0.01;
+                                    _async.forever(next => {
+                                        module_utils_1.getURL(`${url}${current_segment}.ts`, null)
+                                            .then(buffer => {
+                                            fail = 0;
+                                            interval = interval - interval * slow_down;
+                                            current_segment++;
+                                            stream.write(buffer, err => {
+                                                setTimeout(next, interval);
+                                            });
+                                        }, err => {
+                                            fail++;
+                                            if (fail < 10 && err == 403) {
+                                                interval += step;
+                                                setTimeout(next, interval);
+                                            }
+                                            else {
+                                                next(true);
+                                            }
                                         });
                                     }, err => {
-                                        fail++;
-                                        if (fail < 10 && err == 403) {
-                                            interval += step;
-                                            setTimeout(next, interval);
-                                        }
-                                        else {
-                                            next(true);
-                                        }
-                                    });
-                                }, err => {
-                                    stream.close(err => {
-                                        promisify(true);
+                                        stream.close(err => {
+                                            resolve(true);
+                                        });
                                     });
                                 });
+                            })
+                                .then(err => {
+                                return new Promise(resolve => {
+                                    setTimeout(() => {
+                                        resolve(moveFile(filename));
+                                    }, 10000);
+                                });
                             });
-                        })
-                            .then(() => {
-                            return new Promise((resolve, reject) => {
-                                setTimeout(() => {
-                                    resolve(moveFile(filename));
-                                }, 10000);
-                            });
-                        });
+                        }
+                        else {
+                            module_utils_1.error(playlist);
+                            return false;
+                        }
                     }
                     else {
+                        module_utils_1.error(playlist);
                         return false;
                     }
-                }
-                else {
-                    return false;
-                }
-            });
+                });
+            }
         }
-    }
+    });
 }
 exports.downloadLiveStream = downloadLiveStream;
-async function downloadThumbnail(live) {
-    if (live.errorCode == 0) {
-        let filename = createFilename(live) + ".jpg";
-        let exists = await dos.exists(filename);
-        if (!exists) {
-            let image = await module_utils_1.getURL(live.awsUrl, null);
-            await dos.writeFile(filename, image);
-            await moveFile(filename);
-            module_utils_1.info("downloadThumbnail", image.length, filename);
+function downloadThumbnail(live) {
+    return __awaiter(this, void 0, void 0, function* () {
+        if (live.errorCode == 0) {
+            let filename = createFilename(live) + ".jpg";
+            let exists = yield dos.exists(filename);
+            if (!exists) {
+                let image = yield module_utils_1.getURL(live.awsUrl, null);
+                yield dos.writeFile(filename, image);
+                yield moveFile(filename);
+                module_utils_1.info("downloadThumbnail", image.length, filename);
+            }
+            return true;
         }
-        return true;
-    }
-    return false;
+        return false;
+    });
 }
 exports.downloadThumbnail = downloadThumbnail;
-async function saveJSON(live) {
-    if (live.errorCode == 0) {
-        let filename = createFilename(live) + ".json";
-        let exists = await dos.exists(filename);
-        if (!exists) {
-            await dos.writeFile(filename, module_utils_1.prettify(live));
-            await moveFile(filename);
-            module_utils_1.info("saveJSON", filename);
+function saveJSON(live) {
+    return __awaiter(this, void 0, void 0, function* () {
+        if (live.errorCode == 0) {
+            let filename = createFilename(live) + ".json";
+            let exists = yield dos.exists(filename);
+            if (!exists) {
+                yield dos.writeFile(filename, module_utils_1.prettify(live));
+                yield moveFile(filename);
+                module_utils_1.info("saveJSON", filename);
+            }
+            return true;
         }
-        return true;
-    }
-    return false;
+        return false;
+    });
 }
 exports.saveJSON = saveJSON;
 function createFilename(live) {
-    let filename = _path.join(younow_1.settings.pathDownload, `${live.country || "XX"}_${live.profile}_${module_utils_1.formatDateTime(new Date((live.dateStarted || live.dateCreated || Date.now() / 1000) * 1000))}_${live.broadcastId}`);
+    let filename = _path.join(main_1.settings.pathDownload, `${live.country || "XX"}_${live.profile}_${module_utils_1.formatDateTime(new Date((live.dateStarted || live.dateCreated || Date.now() / 1000) * 1000))}_${live.broadcastId}`);
     module_utils_1.debug("createFilename", filename);
     return filename;
 }
 exports.createFilename = createFilename;
-async function moveFile(filename) {
-    if (younow_1.settings.pathMove) {
-        let newpath = _path.join(younow_1.settings.pathMove, _path.parse(filename).base);
-        module_utils_1.info("moveFile", filename, newpath);
-        return dos.rename(filename, newpath);
-    }
+function moveFile(filename) {
+    return __awaiter(this, void 0, void 0, function* () {
+        if (main_1.settings.pathMove) {
+            let newpath = _path.join(main_1.settings.pathMove, _path.parse(filename).base);
+            module_utils_1.info("moveFile", filename, newpath);
+            return dos.rename(filename, newpath);
+        }
+    });
 }
+//# sourceMappingURL=module_younow.js.map

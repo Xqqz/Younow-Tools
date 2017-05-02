@@ -8,5 +8,6 @@ desktop.ini
 
 /cmd_debug.ts
 /js/cmd_debug.js
+/js/*.map
 
 *.sublime-*

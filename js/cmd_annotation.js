@@ -34,3 +34,4 @@ function cmdAnnotation(user, note) {
         .catch(module_utils_1.error);
 }
 exports.cmdAnnotation = cmdAnnotation;
+//# sourceMappingURL=cmd_annotation.js.map

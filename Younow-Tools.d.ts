@@ -440,7 +440,11 @@ interface DBUser
 
 interface DB
 {
-		//[index:string]:DBUser
 		[index:number]:DBUser
 		self:any
+}
+
+interface Streams
+{
+	[index:number]:Array<number>
 }

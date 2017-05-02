@@ -37,3 +37,10 @@ function mkdir(path) {
     });
 }
 exports.mkdir = mkdir;
+function timeout(timeout) {
+    return new Promise((resolve, reject) => {
+        setTimeout(resolve, timeout);
+    });
+}
+exports.timeout = timeout;
+//# sourceMappingURL=module_promises.js.map

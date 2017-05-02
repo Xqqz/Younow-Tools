@@ -19,16 +19,15 @@ function cmdBroadcast(bids) {
                         module_utils_1.error(`${bid} ${archive.errorCode} ${archive.errorMsg}`);
                     }
                     else {
-                        _younow.resolveUser(db, archive.userId)
+                        return _younow.resolveUser(db, archive.userId)
                             .then(user => {
                             if (user.errorCode) {
                                 module_utils_1.error(`${bid} ${user.errorCode} ${user.errorMsg}`);
                             }
                             else {
-                                return _younow.downloadArchive(user, bid, new Date(archive.broadcastTitle).getTime() / 1000);
+                                return _younow.downloadArchive(user, bid, 0);
                             }
-                        })
-                            .catch(module_utils_1.error);
+                        });
                     }
                 })
                     .catch(module_utils_1.error)
@@ -39,3 +38,4 @@ function cmdBroadcast(bids) {
         .catch(module_utils_1.error);
 }
 exports.cmdBroadcast = cmdBroadcast;
+//# sourceMappingURL=cmd_broadcast.js.map

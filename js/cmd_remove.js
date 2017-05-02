@@ -23,3 +23,4 @@ function cmdRemove(users) {
         .catch(module_utils_1.error);
 }
 exports.cmdRemove = cmdRemove;
+//# sourceMappingURL=cmd_remove.js.map

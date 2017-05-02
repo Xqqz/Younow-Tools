@@ -1,5 +1,5 @@
 import * as fs from "fs"
-import * as child from "child_process"
+import {spawn,ChildProcess} from "child_process"
 import {log,info,error} from "./module_utils"
 
 /**
@@ -9,7 +9,7 @@ import {log,info,error} from "./module_utils"
 export class VideoWriter
 {
 	private stream:fs.WriteStream=null
-	private ffmpeg:child.ChildProcess=null
+	private ffmpeg:ChildProcess=null
 	private filename:string=null
 	/**
 	 * [constructor description]
@@ -28,9 +28,14 @@ export class VideoWriter
 
 			try
 			{
-				this.ffmpeg=child.spawn("ffmpeg",params,
+				this.ffmpeg=spawn("ffmpeg",params)
+
+				/** @todo */
+
+				this.ffmpeg.on("error",err=>
 				{
-					stdio:["pipe",process.stdout,"pipe"]
+					this.ffmpeg=null
+					error(err)
 				})
 
 				//this.ffmpeg.stdout.on("data",data=>log(data.toString()))
@@ -40,12 +45,6 @@ export class VideoWriter
 				{
 					this.ffmpeg=null
 					info("FFMPEG close",result)
-				})
-
-				this.ffmpeg.on("error",err=>
-				{
-					this.ffmpeg=null
-					error(err)
 				})
 
 				this.ffmpeg.on("exit",result=>
@@ -86,11 +85,11 @@ export class VideoWriter
 	 */
 	write(data:Buffer,callback:Function)
 	{
-		if (this.ffmpeg)
+		if (this.ffmpeg && data)
 		{
 			this.ffmpeg.stdin.write(data,callback)
 		}
-		else if (this.stream)
+		else if (this.stream && data)
 		{
 			this.stream.write(data,callback)
 		}

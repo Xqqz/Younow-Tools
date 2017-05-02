@@ -4,11 +4,12 @@ import * as _url from "url"
 import * as _async from "async"
 import * as _progress from "progress"
 import {execFile} from "child_process"
-import {settings} from "./younow"
+import {settings} from "./main"
 import {getURL, log, info, error, debug,formatDateTime,prettify} from "./module_utils"
 import {isUsernameInDB,convertToUserDB} from "./module_db"
 import * as dos from "./module_promises"
 import {VideoWriter} from "./module_ffmpeg"
+import {downloadSegments} from "./module_hls"
 
 // CDN=400 API=200 https://cdn.younow.com/php/api/broadcast/info/user=XXX
 
@@ -152,9 +153,9 @@ export function getTagInfo(tag):Promise<Younow.TagInfo>
 /**
  *
  * @function downloadArchive - download archived broadcast
- * @return Promise<any>
+ * @return Promise<boolean>
  */
-export async function downloadArchive(user:Younow.UserInfo|DBUser,bid:number,started:number)
+export async function downloadArchive(user:Younow.UserInfo|DBUser,bid:number,started:number|null):Promise<boolean>
 {
 	info("downloadArchive",user.profile,bid)
 
@@ -168,7 +169,7 @@ export async function downloadArchive(user:Younow.UserInfo|DBUser,bid:number,sta
 
 	let fix:Younow.LiveBroadcast=archive as any
 
-	fix.dateStarted=started
+	fix.dateStarted=started||(new Date(archive.broadcastTitle).getTime()/1000)
 	fix.profile=user.profile
 	fix.broadcastId=bid
 	fix.country=user.country
@@ -176,8 +177,8 @@ export async function downloadArchive(user:Younow.UserInfo|DBUser,bid:number,sta
 
 	let video_filename=createFilename(archive as any)+"."+settings.videoFormat
 
-	await saveJSON(archive as any)
-	await downloadThumbnail(archive as any)
+	saveJSON(archive as any).catch(error)
+	downloadThumbnail(archive as any).catch(error)
 
 	let exists=await dos.exists(video_filename)
 
@@ -193,6 +194,7 @@ export async function downloadArchive(user:Younow.UserInfo|DBUser,bid:number,sta
 				error(playlist)
 				return false
 			}
+
 			let total_segment=m.length
 
 			m=archive.hls.match(/(https:.+)playlist.m3u8/i)
@@ -214,52 +216,15 @@ export async function downloadArchive(user:Younow.UserInfo|DBUser,bid:number,sta
 				clear:true
 			})
 
-			return new Promise(resolve=>
-			{
-				_async.timesLimit(total_segment,settings.parallelDownloads,(segment,next)=>
-				{
-					getURL(`${url}${segment}.ts`,null)
-					.then(buffer=>
-					{
-						bar.tick()
-						next(null,buffer)
-
-					},err=>
-					{
-						//bar.tick()
-						next(null,null)
-					})
-				},(err,buffers:Buffer[])=>
-				{
-					let stream=new VideoWriter(video_filename,settings.useFFMPEG)
-
-					for (let buffer of buffers)
-					{
-						if (buffer)
-						{
-							stream.write(buffer,null)
-						}
-					}
-					stream.close(err=>
-					{
-						resolve(true)
-					})
-				})
-			})
+			return downloadSegments(url,video_filename,total_segment,bar,false)
 			.then(err=>
 			{
-				return new Promise((resolve,reject)=>
-				{
-					setTimeout(()=>
-					{
-						resolve(moveFile(video_filename))
-					},10000)
-				})
+				return moveFile(video_filename)
 			})
 		})
+		.catch(error)
 	}
 }
-
 
 export function getPlaylist(bid):Promise<string>
 {
@@ -295,6 +260,8 @@ export async function downloadLiveStream(live:Younow.LiveBroadcast):Promise<any>
 
 				if (m)
 				{
+					info(`M3U8 ${m.length} ${m[1]}`)
+
 					m=m.pop().match(/(https:.+\/)(\d+).ts/i)
 
 					if (m)
@@ -302,36 +269,18 @@ export async function downloadLiveStream(live:Younow.LiveBroadcast):Promise<any>
 						let url=m[1]
 						let current_segment=Number(m[2])
 
-						return new Promise(promisify=>
+						log(`REWIND ${filename}`)
+
+						return downloadSegments(url,filename,current_segment,null,true)
+						.then((stream:VideoWriter)=>
 						{
-							log(`REWIND ${filename}`)
-
-							_async.timesLimit(current_segment,settings.parallelDownloads,
-							(n,next)=>
+							if (!stream)
 							{
-								getURL(`${url}${n}.ts`,null)
-								.then(buffer=>
-								{
-									next(false,buffer)
-								},err=>
-								{
-									error(err)
-									next(false,null)
-								})
-							},(err,buffers:Array<Buffer>)=>
+								return false
+							}
+
+							return new Promise((resolve,reject)=>
 							{
-								log(`WATCH ${filename}`)
-
-								let stream=new VideoWriter(filename,settings.useFFMPEG)
-
-								for (let buffer of buffers)
-								{
-									if (buffer)
-									{
-										stream.write(buffer,null)
-									}
-								}
-
 								let interval=0
 								let fail=0
 								let step=250
@@ -372,14 +321,14 @@ export async function downloadLiveStream(live:Younow.LiveBroadcast):Promise<any>
 								{
 									stream.close(err=>
 									{
-										promisify(true)
+										resolve(true)
 									})
 								})
 							})
 						})
-						.then(()=>
+						.then(err=>
 						{
-							return new Promise((resolve,reject)=>
+							return new Promise(resolve=>
 							{
 								setTimeout(()=>
 								{
@@ -390,11 +339,13 @@ export async function downloadLiveStream(live:Younow.LiveBroadcast):Promise<any>
 					}
 					else
 					{
+						error(playlist)
 						return false
 					}
 				}
 				else
 				{
+					error(playlist)
 					return false
 				}
 			})

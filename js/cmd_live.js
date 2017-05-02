@@ -33,3 +33,4 @@ function cmdLive(users) {
         .catch(module_utils_1.error);
 }
 exports.cmdLive = cmdLive;
+//# sourceMappingURL=cmd_live.js.map
