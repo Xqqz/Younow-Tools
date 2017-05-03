@@ -1,9 +1,10 @@
+#!/usr/bin/env node
+
 import * as _fs from "fs"
 import * as _path from "path"
 import * as _child from "child_process"
 import * as commander from "commander"
 import * as _async from "async"
-
 
 let pkg=require("../package.json")
 

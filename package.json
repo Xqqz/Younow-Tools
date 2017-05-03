@@ -2,9 +2,9 @@
   "name": "younow-tools",
   "version": "1.0.16",
   "description": "younow cli client",
-  "main": "js/nodejs_commander.js",
+  "main": "./js/main.js",
   "bin": {
-    "younow": "js/main.js"
+    "younow": "./js/main.js"
   },
   "scripts": {
     "test": "younow -v api"
