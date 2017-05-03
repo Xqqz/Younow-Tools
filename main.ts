@@ -1,5 +1,3 @@
-#!/usr/bin/env node
-
 import * as _fs from "fs"
 import * as _path from "path"
 import * as _child from "child_process"
