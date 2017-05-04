@@ -202,7 +202,7 @@ async function main(args)
 	switch (commandId)
 	{
 		case CommandID.scan:
-		cmdScan(params,commander["timer"]*60 || 5*60*60)
+		cmdScan(params,commander["timer"]*60 || 5*60)
 		break
 
 		case CommandID.search:

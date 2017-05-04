@@ -71,10 +71,15 @@ function update_scan(db:DB,streams:Array<any>)
 					throw new Error(`WTF`)
 				}
 
-				debug(`Tag:${tag} Users:${infos.items.length}`)
+				info(`Tag:${tag} Users:${infos.items.length}`)
 
 				infos.items.forEach(function(user)
 				{
+					function showInfos(result,user,liveuser)
+					{
+						info(`1ST Result ${result} ${liveuser.check}:${liveuser.infos?"*":""} ${user.profile} BC:${liveuser.infos&&liveuser.infos.broadcastsCount} LVL:${user.userlevel} VW:${user.viewers}/${user.views} Language:${user.l}`)
+					}
+
 					var liveuser=liveusers[user.userId]
 
 					if (!liveuser)
@@ -147,9 +152,9 @@ function update_scan(db:DB,streams:Array<any>)
 
 						liveuser.check++
 
-						var result=runScript(null,user,liveuser.infos)
+						let result=runScript(null,user,liveuser.infos)
 
-						debug(`1ST ${liveuser.check}:${liveuser.infos?"*":""} ${result} ${user.profile} BC:${liveuser.infos&&liveuser.infos.broadcastsCount} Level:${user.userlevel} VW:${user.viewers}/${user.views} Language:${user.l}`)
+						showInfos(result,user,liveuser)
 
 						if (result=="follow")
 						{
@@ -209,7 +214,9 @@ function update_scan(db:DB,streams:Array<any>)
 
 							liveuser.check++
 
-							var result=runScript(null,user,infos) || null
+							let result=runScript(null,user,infos) || null
+
+							showInfos(result,user,liveuser)
 
 							if (result=="follow")
 							{
@@ -240,10 +247,11 @@ function update_scan(db:DB,streams:Array<any>)
 							}
 
 							log(`MATCH ${user.profile} Viewers:${infos.viewers}/${user.viewers} ${infos.country} state:${infos.stateCopy+" "+infos.state} BC:${infos.broadcastsCount} Partner:${infos.partner} Platform:${infos.platform}`)
+
 							liveuser.infos=infos
 							liveuser.broadcastId=user.broadcastId
 
-							return _younow.downloadThemAll(infos)
+							_younow.downloadThemAll(infos)
 							.then(([thumb,video,json])=>
 							{
 								log(`${user.profile} is over json : ${thumb} image : ${video} video :${json}`)
@@ -259,7 +267,7 @@ function update_scan(db:DB,streams:Array<any>)
 			.catch(error)
 			.then(function()
 			{
-				if (new_resolve) debug(`result new users:${new_users} resolve:${new_resolve}`)
+				if (new_resolve) info(`result new users:${new_users} resolve:${new_resolve}`)
 			})
 		})
 	})

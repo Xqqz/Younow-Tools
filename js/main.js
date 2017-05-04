@@ -146,7 +146,7 @@ function main(args) {
         module_utils_1.info(module_utils_1.prettify(exports.settings));
         switch (commandId) {
             case 11:
-                cmd_scan_1.cmdScan(params, commander["timer"] * 60 || 5 * 60 * 60);
+                cmd_scan_1.cmdScan(params, commander["timer"] * 60 || 5 * 60);
                 break;
             case 3:
                 cmd_search_1.cmdSearch(params);

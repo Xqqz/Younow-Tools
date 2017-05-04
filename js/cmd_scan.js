@@ -47,8 +47,11 @@ function update_scan(db, streams) {
                 else if (!infos.items) {
                     throw new Error(`WTF`);
                 }
-                module_utils_1.debug(`Tag:${tag} Users:${infos.items.length}`);
+                module_utils_1.info(`Tag:${tag} Users:${infos.items.length}`);
                 infos.items.forEach(function (user) {
+                    function showInfos(result, user, liveuser) {
+                        module_utils_1.info(`1ST Result ${result} ${liveuser.check}:${liveuser.infos ? "*" : ""} ${user.profile} BC:${liveuser.infos && liveuser.infos.broadcastsCount} LVL:${user.userlevel} VW:${user.viewers}/${user.views} Language:${user.l}`);
+                    }
                     var liveuser = liveusers[user.userId];
                     if (!liveuser) {
                         new_users++;
@@ -99,8 +102,8 @@ function update_scan(db, streams) {
                     }
                     else {
                         liveuser.check++;
-                        var result = runScript(null, user, liveuser.infos);
-                        module_utils_1.debug(`1ST ${liveuser.check}:${liveuser.infos ? "*" : ""} ${result} ${user.profile} BC:${liveuser.infos && liveuser.infos.broadcastsCount} Level:${user.userlevel} VW:${user.viewers}/${user.views} Language:${user.l}`);
+                        let result = runScript(null, user, liveuser.infos);
+                        showInfos(result, user, liveuser);
                         if (result == "follow") {
                             liveuser.isFollowed = true;
                         }
@@ -140,7 +143,8 @@ function update_scan(db, streams) {
                         liveuser.infos = infos;
                         if (liveuser.isFollowed == false) {
                             liveuser.check++;
-                            var result = runScript(null, user, infos) || null;
+                            let result = runScript(null, user, infos) || null;
+                            showInfos(result, user, liveuser);
                             if (result == "follow") {
                                 liveuser.isFollowed = true;
                             }
@@ -161,7 +165,7 @@ function update_scan(db, streams) {
                             module_utils_1.log(`MATCH ${user.profile} Viewers:${infos.viewers}/${user.viewers} ${infos.country} state:${infos.stateCopy + " " + infos.state} BC:${infos.broadcastsCount} Partner:${infos.partner} Platform:${infos.platform}`);
                             liveuser.infos = infos;
                             liveuser.broadcastId = user.broadcastId;
-                            return _younow.downloadThemAll(infos)
+                            _younow.downloadThemAll(infos)
                                 .then(([thumb, video, json]) => {
                                 module_utils_1.log(`${user.profile} is over json : ${thumb} image : ${video} video :${json}`);
                             }, err => {
@@ -175,7 +179,7 @@ function update_scan(db, streams) {
                 .catch(module_utils_1.error)
                 .then(function () {
                 if (new_resolve)
-                    module_utils_1.debug(`result new users:${new_users} resolve:${new_resolve}`);
+                    module_utils_1.info(`result new users:${new_users} resolve:${new_resolve}`);
             });
         });
     })
