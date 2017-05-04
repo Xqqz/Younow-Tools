@@ -4,7 +4,7 @@
   "description": "younow cli client",
   "main": "./js/main.js",
   "bin": {
-    "younow": "./js/main.js"
+    "younow": "./bin/younow"
   },
   "scripts": {
     "test": "younow -v api"
