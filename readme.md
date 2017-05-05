@@ -2,17 +2,17 @@
 
 ## Installation
 
-1st you need to install NodeJS [link](https://nodejs.org/en/download/current/ "**NodeJS**") download and install the LTS or Current.
+1st you need to install  [NodeJS](https://nodejs.org/en/download/current/) download and install the LTS or Current.
 
 Then launch your terminal (cmd.exe on windows) and install Younow-Tools with NPM :
 
->npm install -g younow-tools
+	npm install -g younow-tools
 
 The command **younow** will be available in your console (cmd.exe or powershell.exe or bash)
 
 To update younow-tools just type :
 
->npm update -g
+	npm update -g
 
 ## Summary
 
@@ -36,13 +36,13 @@ Add broadcaster(s) to your local database :
 * database query
 * record their live broadcasts (scan mode)
 
->younow add user 1234 https://www.younow.com/user
+	younow add user 1234 https://www.younow.com/user
 
 ### remove
 
 Remove user(s) from your database (removed but not ignored)
 
->younow remove 1234 somebody
+	younow remove 1234 somebody
 
 ### ignore
 
@@ -52,19 +52,19 @@ Ignore/unignore broadcasters when they're broadcasting
 
 Add an annotation (comment) to a broadcaster in the database. Must be quoted
 
->younow note somebody "really funny"
+	younow note somebody "really funny"
 
 ### search
 
 Search in the database for one or multiple regex pattern/string in all properties
 
->younow search sn.pch.t dude sexy https instagram funny youtube
+	younow search sn.pch.t dude sexy https instagram funny youtube
 
 ### resolve
 
 Resolve broadcasters(s) and display some informations without adding them to the database
 
->younow resolve someone 12345 https://younow.com/user
+	younow resolve someone 12345 https://younow.com/user
 
 ### vcr <user(s)>
 
@@ -84,10 +84,11 @@ Download broadcast(s) by its ID (number)
 javascript_script : a javascript to analyze live broadcasters
 
 examples :
-https://github.com/UnCrevard/Younow-Tools/blob/master/js/script_example1.js
-https://github.com/UnCrevard/Younow-Tools/blob/master/js/script_example2.js
 
->younow -t 3 --dl z:\ --mv w:\ script.js
+[basic](https://github.com/UnCrevard/Younow-Tools/blob/master/js/script_example2.js)  
+[complex](https://github.com/UnCrevard/Younow-Tools/blob/master/js/script_example1.js)
+
+	younow -t 3 --dl z:\ --mv w:\ script.js
 
 ### api
 
@@ -132,8 +133,8 @@ Increase verbosity level (all commands)
 
 Set the video output format (use FFMPEG)
 
->younow --fmt mp4 scan script.js
->younow --fmt mkv vcr user
+	younow --fmt mp4 scan script.js
+	younow --fmt mkv vcr user
 
 MP4 will add "-bsf:a aac_adtstoasc" for compatibility
 
@@ -150,12 +151,12 @@ default FFMPEG args are :
 
 Use ffmpeg to encode the video.
 
->younow --fmt mkv --ffmpeg "-s 320x240 -r 30 -an" vcr user
->younow --fmt avi --ffmpeg "-vcodec libxvid -acodec libmp3lame" scan script.js
+	younow --fmt mkv --ffmpeg "-s 320x240 -r 30 -an" vcr user
+	younow --fmt avi --ffmpeg "-vcodec libxvid -acodec libmp3lame" scan script.js
 
 **FFMPEG MUST BE IN YOUR PATH (on Windows) OR INSTALLED (on Linux)**
 
-> younow -v add user
+	younow -v add user
 
 ### -h --help
 
@@ -180,36 +181,38 @@ The script receives the log variable. it's a function than the script can use to
 
 	Basic tag filter :
 
-	if (tag) // first check if it needs to scan/ignore a tag
+```javascript
+if (tag) // first check if it needs to scan/ignore a tag
+{
+	if (tag=="music")
 	{
-		if (tag=="music")
-		{
-	log("make some noise !")
-			true // yeah music
-		}
-		else
-		{
-			false // ignore all other tags
-		}
+log("make some noise !")
+		true // yeah music
 	}
-
-	Advanced tag filter :
-
-	if (tag)
+	else
 	{
-		if (tag.score<5) // ignore non popular tag
-		{
-			false // ignore this tag
-		}
-		else if (tag.match(/(music|funny|piano|singing)/i)) // tag match some key word ?
-		{
-			true // scan this tag
-		}
-		else
-		{
-			false // ignore the rest
-		}
+		false // ignore all other tags
 	}
+}
+```
+Advanced tag filter :
+```javascript
+if (tag)
+{
+	if (tag.score<5) // ignore non popular tag
+	{
+		false // ignore this tag
+	}
+	else if (tag.match(/(music|funny|piano|singing)/i)) // tag match some key word ?
+	{
+		true // scan this tag
+	}
+	else
+	{
+		false // ignore the rest
+	}
+}
+```
 
 2nd call it will receive the user variable (tag is now null)
 
@@ -223,38 +226,40 @@ The script receives the log variable. it's a function than the script can use to
 	user.totalFans : all broadcasts fans
 	user.position : current position (0 to 100)
 
+```javascript
 	Basic script :
 
-	if (tag)
+if (tag)
+{
+	// handle tags...
+}
+else if (user)
+{
+	if (user.viewers<50)
 	{
-		// handle tags...
+		"ignore" // ignore broadcasts with less than 50 viewers
 	}
-	else if (user)
+	else if (user.l.match(/(me|de|tr|es)/i))
 	{
-		if (user.viewers<50)
-		{
-			"ignore" // ignore broadcasts with less than 50 viewers
-		}
-		else if (user.l.match(/(me|de|tr|es)/i))
-		{
-			"ignore" // ignore non english languages
-		}
-		else if (user.userId==1234 || user.profile=="yeahhhhhhh")
-		{
-            log("your favorite broadcaster is online !")
-			"follow" // record these broadcasts
-		}
-		else if (user.position>50)
-		{
-            log(user.profile,"seems to be popular !")
-			"resolve" // request more informations for this broadcaster (3rd pass)
-		}
-		else
-		{
-            log("I'm bored")
-			"waiting" // wait for broadcast to match some values
-		}
+		"ignore" // ignore non english languages
 	}
+	else if (user.userId==1234 || user.profile=="yeahhhhhhh")
+	{
+		log("your favorite broadcaster is online !")
+		"follow" // record these broadcasts
+	}
+	else if (user.position>50)
+	{
+		log(user.profile,"seems to be popular !")
+		"resolve" // request more informations for this broadcaster (3rd pass)
+	}
+	else
+	{
+		log("I'm bored")
+		"waiting" // wait for broadcast to match some values
+	}
+}
+```
 
 3rd call it will receive the user and the broadcast variables (tag is null)
 When the script returns resolve it will receive informations on the broadcast (LiveBroadcast Object)
@@ -262,56 +267,59 @@ This variable exports more information on a current broadcast than the user one.
 
 (for more the list and some informations on all properties of this object check for the source file Younow-tools.d.ts)
 
-	At least the final script to handle various broadcast parameters :
+At least the final script to handle various broadcast parameters :
 
-	if (tag)
+```javascript
+if (tag)
+{
+	true // accept all tags
+}
+else if (user)
+{
+	if (user.viewers<50)
 	{
-		true // accept all tags
+		"ignore"
 	}
-	else if (user)
+	else if (broadcast) // if resolved
 	{
-		if (user.viewers<50)
+		if (broadcast.country.match(/(OM|JO|EG|PK|PH|RO|TR|KW|SA|MA|TN)/))
 		{
-			"ignore"
+			return "ignore" // ignore some countries...
 		}
-		else if (broadcast) // if resolved
+		else if (broadcast.country.match(/(AU|GB|US|UK|IE)/)) // only English spoken
 		{
-			if (broadcast.country.match(/(OM|JO|EG|PK|PH|RO|TR|KW|SA|MA|TN)/))
+			if (broadcast.broadcastsCount<20) // ignore newbies
 			{
-				return "ignore" // ignore some countries...
+				return "ignore"
 			}
-			else if (broadcast.country.match(/(AU|GB|US|UK|IE)/)) // only English spoken
-			{
-				if (broadcast.broadcastsCount<20) // ignore newbies
-				{
-					return "ignore"
-				}
-				else
-				{
-                    log("Interesting broadcast",user.profile)
-                    "resolve"
-				}
 			else
 			{
-				return "waiting"
+				log("Interesting broadcast",user.profile)
+				"resolve"
 			}
-		}
 		else
 		{
-			"resolve" // request more informations
+			return "waiting"
 		}
 	}
+	else
+	{
+		"resolve" // request more informations
+	}
+}
+```
 
 # WARNING !
 
 They're hundred of broadcasts every minutes so a wrong filtering can fill you hard drive and saturate your network bandwidth very quickly !
 
 The script receive 4 variables :
-
+```
 declare var tag:Younow.Tag
 declare var user:Younow.TagInfoUser
 declare var broadcast:Younow.LiveBroadcast
 declare var log:any
+```
 
 # Tips !
 
@@ -324,7 +332,9 @@ WATCH => The broadcast is running & downloaded
 
 Sometimes the stream timestamps are corrupt and can be read smoothly (server side bug). FFMPEG can be used to repair those files :
 
+```
 ffmpeg.exe, -i video_file.ts -c copy -video_track_timescale 0 fixed_video.ts
+```
 
 ## Comments
 
@@ -332,8 +342,8 @@ To compile the source (.ts) you need typescript (VSCode or Atom editor) and shar
 
 **As an open source project use it at your own risk. Younow can break it down at any time.**
 
-**Report any bug or missing feature at your will.**
+Report any bug or missing feature at your will.
 
-**If you like this software, please consider a Bitcoin donation to bitcoin://34fygtqeAP62xixpTj6w9XTtfKmqjFqpo6**
+If you like this software, please consider a Bitcoin donation to bitcoin://34fygtqeAP62xixpTj6w9XTtfKmqjFqpo6**
 
 # Enjoy !
