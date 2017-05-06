@@ -79,10 +79,10 @@ function update_scan(db, streams) {
                     if (dbuser) {
                         if (dbuser.ignore) {
                             if (liveuser.isIgnored == false) {
-                                module_utils_1.log(`${user.profile} is ignored`);
-                                liveuser.isIgnored = true;
+                                module_utils_1.log(`${user.profile} is now ignored`);
                             }
                             liveuser.isFollowed = false;
+                            liveuser.isIgnored = true;
                             return;
                         }
                         else if (liveuser.isFollowed == false) {

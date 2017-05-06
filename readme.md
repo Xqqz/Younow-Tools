@@ -36,7 +36,9 @@ Add broadcaster(s) to your local database :
 * database query
 * record their live broadcasts (scan mode)
 
-	younow add user 1234 https://www.younow.com/user
+```
+younow add user 1234 https://www.younow.com/user
+```
 
 ### remove
 
@@ -85,7 +87,7 @@ javascript_script : a javascript to analyze live broadcasters
 
 examples :
 
-[basic](https://github.com/UnCrevard/Younow-Tools/blob/master/js/script_example2.js)  
+[basic](https://github.com/UnCrevard/Younow-Tools/blob/master/js/script_example2.js)
 [complex](https://github.com/UnCrevard/Younow-Tools/blob/master/js/script_example1.js)
 
 	younow -t 3 --dl z:\ --mv w:\ script.js
@@ -103,6 +105,10 @@ compact/normalize your database (advanced)
 ignore this (advanced)
 
 ## Options
+
+### --locale <locale>
+
+Use a different locale for request. Default is en (english).
 
 ### --db <path>
 
@@ -227,11 +233,12 @@ if (tag)
 	user.position : current position (0 to 100)
 
 ```javascript
-	Basic script :
+// Basic script :
 
 if (tag)
 {
 	// handle tags...
+	true // include all
 }
 else if (user)
 {
@@ -314,7 +321,7 @@ else if (user)
 They're hundred of broadcasts every minutes so a wrong filtering can fill you hard drive and saturate your network bandwidth very quickly !
 
 The script receive 4 variables :
-```
+```javascript
 declare var tag:Younow.Tag
 declare var user:Younow.TagInfoUser
 declare var broadcast:Younow.LiveBroadcast

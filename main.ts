@@ -23,13 +23,13 @@ export var settings:Settings=
 	pathDB:null,
 	pathDownload:null,
 	pathMove:null,
-	dbBroadcasters:null,
 	pathConfig:_path.join(process.env.APPDATA||process.env.HOME,"YounowTools"),
 	parallelDownloads:null,
 	useFFMPEG:null,
 	FFMPEG_DEFAULT:"-hide_banner -loglevel error -c copy -video_track_timescale 0",
 	videoFormat:null,
-	args:null
+	args:null,
+	locale:null
 }
 
 import * as _younow from "./module_younow"
@@ -76,6 +76,7 @@ async function main(args)
 	.option("-l --limit <number>","number of parallel downloads for a stream (default 5)")
 	.option("--ffmpeg <arguments>","use ffmpeg (must be in your path) to parse and write the video stream (advanced)",false)
 	.option("--fmt <format>","change the output format (FFMPEG will be enabled)","ts")
+	.option(`--locale <xx>`,`change the default (en) locale (ww|en|de|es|tr|me)`,`en`)
 
 	commander
 	.command("add <users...>")
@@ -156,6 +157,7 @@ async function main(args)
 	settings.parallelDownloads=commander["limit"]||5
 	settings.videoFormat=commander["fmt"]
 	settings.useFFMPEG=commander["ffmpeg"]
+	settings.locale=commander["locale"].toLowerCase()
 
 	if (!await dos.exists(settings.pathConfig))
 	{
@@ -235,7 +237,12 @@ async function main(args)
 
 		case CommandID.fixdb:
 
-		/**	normalize db */
+		/**
+		 *
+		 * compact & normalize db
+		 *
+		 */
+
 		openDB()
 		.then((db)=>
 		{

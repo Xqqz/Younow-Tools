@@ -83,7 +83,7 @@ function getMoments(uid, next) {
 }
 exports.getMoments = getMoments;
 function getTrendings() {
-    return module_utils_1.getURL(`${API_URL}/php/api/younow/dashboard/locale=en/trending=50`);
+    return module_utils_1.getURL(`${API_URL}/php/api/younow/dashboard/locale=${main_1.settings.locale}/trending=50`);
 }
 exports.getTrendings = getTrendings;
 function getTagInfo(tag) {

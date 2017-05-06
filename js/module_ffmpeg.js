@@ -18,15 +18,11 @@ class VideoWriter {
                     this.ffmpeg = null;
                     module_utils_1.error(err);
                 });
-                this.ffmpeg.stderr.on("data", data => module_utils_1.error(data.toString()));
                 this.ffmpeg.on("close", result => {
                     this.ffmpeg = null;
                     module_utils_1.info("FFMPEG close", result);
                 });
-                this.ffmpeg.on("exit", result => {
-                    module_utils_1.info("FFMPEG exit", result);
-                    this.ffmpeg = null;
-                });
+                this.ffmpeg.stderr.on("data", data => module_utils_1.error(data.toString()));
             }
             catch (e) {
                 module_utils_1.error(e);

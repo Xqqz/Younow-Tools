@@ -378,13 +378,12 @@ interface Settings
 	/** download/temp folder {string|null} */
 	pathDownload:string
 	parallelDownloads:number
-	/** database {object} */
-	dbBroadcasters:DB
 	pathConfig:string
 	readonly FFMPEG_DEFAULT:string
 	useFFMPEG:string
 	videoFormat:string
 	args:string[]
+	locale:string
 }
 
 interface LiveUser

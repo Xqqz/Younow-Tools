@@ -119,10 +119,10 @@ function update_scan(db:DB,streams:Array<any>)
 						{
 							if (liveuser.isIgnored==false)
 							{
-								log(`${user.profile} is ignored`)
-								liveuser.isIgnored=true
+								log(`${user.profile} is now ignored`)
 							}
 							liveuser.isFollowed=false
+							liveuser.isIgnored=true
 							return
 						}
 						else if (liveuser.isFollowed==false)

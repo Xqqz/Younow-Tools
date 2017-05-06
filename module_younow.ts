@@ -139,14 +139,18 @@ export function getMoments(uid,next):Promise<Younow.Moments>
 	return getURL(`${API_URL}/php/api/moment/profile/channelId=${uid}/createdBefore=${next}`)
 }
 
+// https://api.younow.com/php/api/younow/topBroadcasters/numberOfRecords=20/startFrom=0/tag=${tag}
+// https://cdn.younow.com/php/api/younow/dashboard/locale={ww|en}/trending=50
+
 export function getTrendings():Promise<Younow.Trendings>
 {
 	// cdn2
-	return getURL(`${API_URL}/php/api/younow/dashboard/locale=en/trending=50`)
+	return getURL(`${API_URL}/php/api/younow/dashboard/locale=${settings.locale}/trending=50`)
 }
 
 export function getTagInfo(tag):Promise<Younow.TagInfo>
 {
+
 	return getURL(`https://playdata.younow.com/live/tags/${new Buffer(tag).toString("base64")}.json`)
 }
 

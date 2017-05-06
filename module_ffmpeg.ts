@@ -38,20 +38,13 @@ export class VideoWriter
 					error(err)
 				})
 
-				//this.ffmpeg.stdout.on("data",data=>log(data.toString()))
-				this.ffmpeg.stderr.on("data",data=>error(data.toString()))
-
 				this.ffmpeg.on("close",result=>
 				{
 					this.ffmpeg=null
 					info("FFMPEG close",result)
 				})
 
-				this.ffmpeg.on("exit",result=>
-				{
-					info("FFMPEG exit",result)
-					this.ffmpeg=null
-				})
+				this.ffmpeg.stderr.on("data",data=>error(data.toString()))
 			}
 			catch(e)
 			{
