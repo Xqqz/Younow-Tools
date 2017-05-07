@@ -9,8 +9,7 @@ const _younow = require("./module_younow");
 const module_db_1 = require("./module_db");
 let liveusers = {};
 let script = null;
-function cmdScan(script_file, scan_interval) {
-    module_utils_1.info("scan interval", scan_interval);
+function cmdScan(script_file) {
     new module_db_1.FakeDB()
         .open(_path.join(main_1.settings.pathConfig, "streams.txt"), "streams")
         .then(streams => {
@@ -19,7 +18,7 @@ function cmdScan(script_file, scan_interval) {
             script = parseScript(script_file);
             setInterval(() => {
                 update_scan(db, streams);
-            }, scan_interval * 1000);
+            }, main_1.settings.timeout * 60000);
             update_scan(db, streams);
             fs.watchFile(main_1.settings.pathDB, (curr, prev) => {
                 module_utils_1.error(`DATABASE UPDATED`);

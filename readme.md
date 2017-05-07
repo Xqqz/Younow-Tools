@@ -28,6 +28,16 @@ Ctrl-C to stop at any time.
 
 ## Commands
 
+### follow <users>
+
+Record broadcasts followed (aka FanOf on profile page) from any user(s) or your account.
+
+Default interval is 5 minutes (it's every minute on the website). Use --timer to change this value.
+
+```
+younow -t 3 follow your_account someone_with_good_taste
+```
+
 ### add
 
 Add broadcaster(s) to your local database :

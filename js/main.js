@@ -28,7 +28,8 @@ exports.settings = {
     FFMPEG_DEFAULT: "-hide_banner -loglevel error -c copy -video_track_timescale 0",
     videoFormat: null,
     args: null,
-    locale: null
+    locale: null,
+    timeout: null
 };
 const module_utils_1 = require("./module_utils");
 const module_db_1 = require("./module_db");
@@ -51,11 +52,15 @@ function main(args) {
             .option("--db <path>", "database filename (default ./broadcasters.json")
             .option("--dl <path>", "download path (default current)")
             .option("--mv <path>", "at the end MOVE files to this path (default do nothing)")
-            .option("-t --timer <minutes>", "scan interval (default 5 minutes)")
+            .option("-t --timer <minutes>", "scan interval (default 5 minutes)", 5)
             .option("-l --limit <number>", "number of parallel downloads for a stream (default 5)")
             .option("--ffmpeg <arguments>", "use ffmpeg (must be in your path) to parse and write the video stream (advanced)", false)
             .option("--fmt <format>", "change the output format (FFMPEG will be enabled)", "ts")
             .option(`--locale <xx>`, `change the default (en) locale (ww|en|de|es|tr|me)`, `en`);
+        commander
+            .command("follow <users...>")
+            .description("record/monitor broadcasts followed (aka FanOf on profile page) from any user(s) or your account.")
+            .action((user, cmd) => commandId = 8);
         commander
             .command("add <users...>")
             .description("add user(s) by username, uid, URL to db")
@@ -92,23 +97,23 @@ function main(args) {
         commander
             .command("broadcast <broadcastId...>")
             .description("download broadcastId ")
-            .action((users, cmd) => commandId = 8);
+            .action((users, cmd) => commandId = 9);
         commander
             .command("scan <config_file>")
             .description("scan live broadcasts")
-            .action((users, cmd) => commandId = 11);
+            .action((users, cmd) => commandId = 12);
         commander
             .command("api")
             .description("api compatibility test (advanced)")
-            .action((users, cmd) => commandId = 9);
+            .action((users, cmd) => commandId = 10);
         commander
             .command("fixdb")
             .description("normalize db informations (advanced)")
-            .action((users, cmd) => commandId = 10);
+            .action((users, cmd) => commandId = 11);
         commander
             .command("debug [params...]")
             .description("debug tool ignore this")
-            .action(() => commandId = 12);
+            .action(() => commandId = 13);
         let commandId = -1;
         commander.parse(args);
         let params = commander.args[0];
@@ -120,6 +125,7 @@ function main(args) {
         exports.settings.videoFormat = commander["fmt"];
         exports.settings.useFFMPEG = commander["ffmpeg"];
         exports.settings.locale = commander["locale"].toLowerCase();
+        exports.settings.timeout = commander["timer"];
         if (!(yield dos.exists(exports.settings.pathConfig))) {
             yield dos.mkdir(exports.settings.pathConfig);
         }
@@ -147,8 +153,8 @@ function main(args) {
         }
         module_utils_1.info(module_utils_1.prettify(exports.settings));
         switch (commandId) {
-            case 11:
-                cmd_scan_1.cmdScan(params, commander["timer"] * 60 || 5 * 60);
+            case 12:
+                cmd_scan_1.cmdScan(params);
                 break;
             case 3:
                 cmd_search_1.cmdSearch(params);
@@ -162,16 +168,19 @@ function main(args) {
             case 6:
                 cmd_vcr_1.cmdVCR(params);
                 break;
+            case 8:
+                require("./cmd_follow").cmdFollow(params);
+                break;
             case 7:
                 cmd_live_1.cmdLive(params);
                 break;
-            case 8:
+            case 9:
                 cmd_broadcast_1.cmdBroadcast(params);
                 break;
-            case 9:
+            case 10:
                 cmd_api_1.cmdAPI();
                 break;
-            case 10:
+            case 11:
                 module_db_1.openDB()
                     .then((db) => {
                     _fs.rename(exports.settings.pathDB, exports.settings.pathDB + ".tmp", err => {
@@ -198,7 +207,7 @@ function main(args) {
             case 2:
                 cmd_ignore_1.cmdIgnore(params);
                 break;
-            case 12:
+            case 13:
                 require("./cmd_debug").cmdDebug(params);
                 break;
             default:

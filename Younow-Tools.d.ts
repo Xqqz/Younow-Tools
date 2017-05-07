@@ -365,6 +365,88 @@ declare namespace Younow
 			level:number
 		}
 	}
+
+	interface Followed
+	{
+		errorCode:number
+		errorMsg?:string
+		fans:
+		[
+			{
+				userId:number
+				profileUrlString:string
+				firstName:string
+				lastName:string
+				description:string
+			}
+		],
+		active:null
+		hasNext:number	// 1
+		count:number
+	}
+
+	const enum FollowedStatus
+	{
+		watching=0,
+		broadcasting=2
+	}
+
+	interface FollowedOnline
+	{
+		errorCode: number
+		errorMsg?:string
+		nextRefresh: number,
+		users:
+		[
+			{
+				userId: number
+				name: string
+				status: number	// 0== watching 1 == ? 2==broadcasting
+				level: number
+				/** @type {number} [channelId where is the user] */
+				channelId: number
+				channelName: string
+				profile: string
+				globalSpenderRank: number
+				viewers: number
+				tags:Array<string>
+			}
+		]
+		totalFans?: number
+	}
+
+	interface Followers
+	{
+		errorCode: number
+		fans:
+		[
+			{
+				userId: number
+				profileUrlString: string
+				firstName: string
+				lastName: string
+				description: string
+			}
+		]
+		active: null
+		hasNext: number	// 1=true
+		count: number
+	}
+
+	interface FollowersOnline
+	{
+
+	}
+}
+
+declare namespace Utils
+{
+	const enum Time
+	{
+		SECOND=1000,
+		MINUTE=60000,
+		HOUR=3600000
+	}
 }
 
 interface Settings
@@ -384,6 +466,7 @@ interface Settings
 	videoFormat:string
 	args:string[]
 	locale:string
+	timeout:number
 }
 
 interface LiveUser

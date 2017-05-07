@@ -29,7 +29,8 @@ export var settings:Settings=
 	FFMPEG_DEFAULT:"-hide_banner -loglevel error -c copy -video_track_timescale 0",
 	videoFormat:null,
 	args:null,
-	locale:null
+	locale:null,
+	timeout:null
 }
 
 import * as _younow from "./module_younow"
@@ -57,6 +58,7 @@ const enum CommandID
 	annotation,
 	vcr,
 	live,
+	follow,
 	broadcast,
 	api,
 	fixdb,
@@ -72,11 +74,16 @@ async function main(args)
 	.option("--db <path>","database filename (default ./broadcasters.json")
 	.option("--dl <path>","download path (default current)")
 	.option("--mv <path>","at the end MOVE files to this path (default do nothing)")
-	.option("-t --timer <minutes>","scan interval (default 5 minutes)")
+	.option("-t --timer <minutes>","scan interval (default 5 minutes)",5)
 	.option("-l --limit <number>","number of parallel downloads for a stream (default 5)")
 	.option("--ffmpeg <arguments>","use ffmpeg (must be in your path) to parse and write the video stream (advanced)",false)
 	.option("--fmt <format>","change the output format (FFMPEG will be enabled)","ts")
 	.option(`--locale <xx>`,`change the default (en) locale (ww|en|de|es|tr|me)`,`en`)
+
+	commander
+	.command("follow <users...>")
+	.description("record/monitor broadcasts followed (aka FanOf on profile page) from any user(s) or your account.")
+	.action((user,cmd)=>commandId=CommandID.follow)
 
 	commander
 	.command("add <users...>")
@@ -158,6 +165,7 @@ async function main(args)
 	settings.videoFormat=commander["fmt"]
 	settings.useFFMPEG=commander["ffmpeg"]
 	settings.locale=commander["locale"].toLowerCase()
+	settings.timeout=commander["timer"]
 
 	if (!await dos.exists(settings.pathConfig))
 	{
@@ -204,7 +212,7 @@ async function main(args)
 	switch (commandId)
 	{
 		case CommandID.scan:
-		cmdScan(params,commander["timer"]*60 || 5*60)
+		cmdScan(params)
 		break
 
 		case CommandID.search:
@@ -221,6 +229,10 @@ async function main(args)
 
 		case CommandID.vcr:
 		cmdVCR(params)
+		break
+
+		case CommandID.follow:
+		require("./cmd_follow").cmdFollow(params)
 		break
 
 		case CommandID.live:

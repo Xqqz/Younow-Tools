@@ -12,10 +12,8 @@ import {FakeDB,openDB} from "./module_db"
 let liveusers:LiveUser={}
 let script=null
 
-export function cmdScan(script_file:string,scan_interval:number)
+export function cmdScan(script_file:string)
 {
-	info("scan interval",scan_interval)
-
 	new FakeDB()
 	.open(_path.join(settings.pathConfig,"streams.txt"),"streams")
 	.then(streams=>
@@ -28,7 +26,7 @@ export function cmdScan(script_file:string,scan_interval:number)
 			setInterval(()=>
 			{
 				update_scan(db,streams)
-			},scan_interval*1000)
+			},settings.timeout*Utils.Time.MINUTE)
 
 			update_scan(db,streams)
 
