@@ -87,6 +87,10 @@ function main(args) {
             .description("resolve user(s) online")
             .action((users, cmd) => commandId = 4);
         commander
+            .command("followed <users...>")
+            .description(`list followed of user(s)`)
+            .action(users => commandId = 9);
+        commander
             .command("vcr <users...>")
             .description("download archived broadcast if available")
             .action((users, cmd) => commandId = 6);
@@ -97,23 +101,23 @@ function main(args) {
         commander
             .command("broadcast <broadcastId...>")
             .description("download broadcastId ")
-            .action((users, cmd) => commandId = 9);
+            .action((users, cmd) => commandId = 10);
         commander
             .command("scan <config_file>")
             .description("scan live broadcasts")
-            .action((users, cmd) => commandId = 12);
+            .action((users, cmd) => commandId = 13);
         commander
             .command("api")
             .description("api compatibility test (advanced)")
-            .action((users, cmd) => commandId = 10);
+            .action((users, cmd) => commandId = 11);
         commander
             .command("fixdb")
             .description("normalize db informations (advanced)")
-            .action((users, cmd) => commandId = 11);
+            .action((users, cmd) => commandId = 12);
         commander
             .command("debug [params...]")
             .description("debug tool ignore this")
-            .action(() => commandId = 13);
+            .action(() => commandId = 14);
         let commandId = -1;
         commander.parse(args);
         let params = commander.args[0];
@@ -153,7 +157,7 @@ function main(args) {
         }
         module_utils_1.info(module_utils_1.prettify(exports.settings));
         switch (commandId) {
-            case 12:
+            case 13:
                 cmd_scan_1.cmdScan(params);
                 break;
             case 3:
@@ -171,16 +175,19 @@ function main(args) {
             case 8:
                 require("./cmd_follow").cmdFollow(params);
                 break;
+            case 9:
+                require("./cmdFollowed").cmdFollowed(params);
+                break;
             case 7:
                 cmd_live_1.cmdLive(params);
                 break;
-            case 9:
+            case 10:
                 cmd_broadcast_1.cmdBroadcast(params);
                 break;
-            case 10:
+            case 11:
                 cmd_api_1.cmdAPI();
                 break;
-            case 11:
+            case 12:
                 module_db_1.openDB()
                     .then((db) => {
                     _fs.rename(exports.settings.pathDB, exports.settings.pathDB + ".tmp", err => {
@@ -207,7 +214,7 @@ function main(args) {
             case 2:
                 cmd_ignore_1.cmdIgnore(params);
                 break;
-            case 13:
+            case 14:
                 require("./cmd_debug").cmdDebug(params);
                 break;
             default:

@@ -14,18 +14,16 @@ const main_1 = require("./main");
 const module_utils_1 = require("./module_utils");
 function cmdFollow(users) {
     return __awaiter(this, void 0, void 0, function* () {
-        database.openDB()
-            .then(db => {
-            return Promise.all(users.map(user => {
-                return younow.resolveUser(db, younow.extractUser(user))
-                    .then(dbuser => {
-                    if (dbuser.errorCode) {
-                        throw `${user} ${dbuser.errorCode} ${dbuser.errorMsg}`;
-                    }
-                    return dbuser;
-                });
-            }));
-        })
+        let db = yield database.openDB();
+        Promise.all(users.map(user => {
+            return younow.resolveUser(db, younow.extractUser(user))
+                .then(dbuser => {
+                if (dbuser.errorCode) {
+                    throw `${user} ${dbuser.errorCode} ${dbuser.errorMsg}`;
+                }
+                return dbuser;
+            });
+        }))
             .then((curators) => {
             let liveBroadcasters = {};
             function monitor() {
@@ -50,27 +48,39 @@ function cmdFollow(users) {
                                     else {
                                         liveBroadcasters[userId] = { status: null };
                                     }
-                                    if (followed.status != liveBroadcasters[userId].status) {
-                                        liveBroadcasters[userId].status = followed.status;
-                                        switch (followed.status) {
-                                            case 0:
-                                                module_utils_1.log(`${followed.profile} is watching ${followed.channelName}`);
-                                                break;
-                                            case 2:
-                                                module_utils_1.log(`${followed.profile} is broadcasting`);
-                                                younow.getLiveBroadcastByUID(userId)
-                                                    .then(liveBroadcast => {
-                                                    if (liveBroadcast.errorCode == 0) {
-                                                        return younow.downloadThemAll(liveBroadcast)
-                                                            .then(([thumb, video, json]) => {
-                                                            module_utils_1.log(`${followed.profile} is over json : ${thumb} image : ${video} video :${json}`);
-                                                        });
-                                                    }
-                                                })
-                                                    .catch(module_utils_1.error);
-                                                break;
-                                            default:
-                                                module_utils_1.error(`Status:${followed.status}`);
+                                    let broadcaster = liveBroadcasters[userId];
+                                    if (userId in db && db[userId].ignore) {
+                                        if (broadcaster.status == null) {
+                                            module_utils_1.error(`${followed.profile} is ignored`);
+                                        }
+                                        broadcaster.status = followed.status;
+                                    }
+                                    else {
+                                        if (followed.status != broadcaster.status) {
+                                            broadcaster.status = followed.status;
+                                            switch (followed.status) {
+                                                case 0:
+                                                    module_utils_1.log(`${followed.profile} is watching ${followed.channelName}`);
+                                                    break;
+                                                case 2:
+                                                    younow.getLiveBroadcastByUID(userId)
+                                                        .then(live => {
+                                                        if (live.errorCode || live.lastSegmentId == undefined) {
+                                                            broadcaster.status = null;
+                                                            module_utils_1.error(`${live.profile} is not ready`);
+                                                        }
+                                                        else {
+                                                            return younow.downloadThemAll(live)
+                                                                .then(([thumb, video, json]) => {
+                                                                module_utils_1.log(`${followed.profile} is over json : ${thumb} image : ${video} video :${json}`);
+                                                            });
+                                                        }
+                                                    })
+                                                        .catch(module_utils_1.error);
+                                                    break;
+                                                default:
+                                                    module_utils_1.error(`Status:${followed.status}`);
+                                            }
                                         }
                                     }
                                 }

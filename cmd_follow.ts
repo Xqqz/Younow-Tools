@@ -13,23 +13,21 @@ interface LiveBroadcasters
 
 export async function cmdFollow(users:string[])
 {
-	database.openDB()
-	.then(db=>
-	{
-		return Promise.all(users.map(user=>
-		{
-			return younow.resolveUser(db,younow.extractUser(user))
-			.then(dbuser=>
-			{
-				if (dbuser.errorCode)
-				{
-					throw `${user} ${dbuser.errorCode} ${dbuser.errorMsg}`
-				}
+	let db:DB=await database.openDB()
 
-				return dbuser
-			})
-		}))
-	})
+	Promise.all(users.map(user=>
+	{
+		return younow.resolveUser(db,younow.extractUser(user))
+		.then(dbuser=>
+		{
+			if (dbuser.errorCode)
+			{
+				throw `${user} ${dbuser.errorCode} ${dbuser.errorMsg}`
+			}
+
+			return dbuser
+		})
+	}))
 	.then((curators:Array<DBUser>)=>
 	{
 		let liveBroadcasters:LiveBroadcasters={}
@@ -68,38 +66,55 @@ export async function cmdFollow(users:string[])
 								liveBroadcasters[userId]={status:null}
 							}
 
-							if (followed.status!=liveBroadcasters[userId].status)
+							let broadcaster=liveBroadcasters[userId]
+
+							if (userId in db && db[userId].ignore)
 							{
-								liveBroadcasters[userId].status=followed.status
-
-								switch (followed.status)
+								if (broadcaster.status==null)
 								{
-									case Younow.FollowedStatus.watching:
+									error(`${followed.profile} is ignored`)
+								}
+								broadcaster.status=followed.status
+							}
+							else
+							{
+								if (followed.status!=broadcaster.status)
+								{
+									broadcaster.status=followed.status
 
-									log(`${followed.profile} is watching ${followed.channelName}`)
-									break
-
-									case Younow.FollowedStatus.broadcasting:
-
-									log(`${followed.profile} is broadcasting`)
-
-									younow.getLiveBroadcastByUID(userId)
-									.then(liveBroadcast=>
+									switch (followed.status)
 									{
-										if (liveBroadcast.errorCode==0)
-										{
-											return younow.downloadThemAll(liveBroadcast)
-											.then(([thumb,video,json])=>
-											{
-												log(`${followed.profile} is over json : ${thumb} image : ${video} video :${json}`)
-											})
-										}
-									})
-									.catch(error)
-									break
+										case Younow.FollowedStatus.watching:
 
-									default:
-									error(`Status:${followed.status}`)
+										log(`${followed.profile} is watching ${followed.channelName}`)
+										break
+
+										case Younow.FollowedStatus.broadcasting:
+
+										younow.getLiveBroadcastByUID(userId)
+										.then(live=>
+										{
+											if (live.errorCode || live.lastSegmentId==undefined)
+											{
+												// retry if not ready
+												broadcaster.status=null
+												error(`${live.profile} is not ready`)
+											}
+											else
+											{
+												return younow.downloadThemAll(live)
+												.then(([thumb,video,json])=>
+												{
+													log(`${followed.profile} is over json : ${thumb} image : ${video} video :${json}`)
+												})
+											}
+										})
+										.catch(error)
+										break
+
+										default:
+										error(`Status:${followed.status}`)
+									}
 								}
 							}
 						}

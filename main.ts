@@ -59,6 +59,7 @@ const enum CommandID
 	vcr,
 	live,
 	follow,
+	followed,
 	broadcast,
 	api,
 	fixdb,
@@ -115,6 +116,11 @@ async function main(args)
 	.command("resolve <users...>")
 	.description("resolve user(s) online")
 	.action((users,cmd)=>commandId=CommandID.resolve)
+
+	commander
+	.command("followed <users...>")
+	.description(`list followed of user(s)`)
+	.action(users=>commandId=CommandID.followed)
 
 	commander
 	.command("vcr <users...>")
@@ -233,6 +239,10 @@ async function main(args)
 
 		case CommandID.follow:
 		require("./cmd_follow").cmdFollow(params)
+		break
+
+		case CommandID.followed:
+		require("./cmdFollowed").cmdFollowed(params)
 		break
 
 		case CommandID.live:

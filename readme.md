@@ -14,6 +14,13 @@ To update younow-tools just type :
 
 	npm update -g
 
+### Change log
+
+20170504 fix : linux compatibility  
+20170506 add : option --locale  
+20170507 add : command follow  
+20170510 add : command followed & fix follow "soon..."
+
 ## Summary
 
 This package offer various tools to use Younow via cli. Type younow for basic usage.
@@ -77,6 +84,10 @@ Search in the database for one or multiple regex pattern/string in all propertie
 Resolve broadcasters(s) and display some informations without adding them to the database
 
 	younow resolve someone 12345 https://younow.com/user
+
+### followed
+
+List the followed (fanOf on profile page) of any user(s)
 
 ### vcr <user(s)>
 

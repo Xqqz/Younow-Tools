@@ -32,6 +32,11 @@ export function extractUser(user): string
 	}
 }
 
+export function errortoString(result:{errorCode:number,errorMsg?:string})
+{
+	return `${result.errorCode} ${result.errorMsg}`
+}
+
 // errorCode: 101, errorMsg: 'Invalid user Id
 // 	errorCode: 5501, errorMsg: 'Invalid channel ID'
 //
@@ -418,5 +423,10 @@ async function moveFile(filename:string)
 		info("moveFile",filename,newpath)
 		return dos.rename(filename,newpath)
 	}
+}
+
+export function getFollowed(userId:number,start:number)
+{
+	return getURL(`https://cdn.younow.com/php/api/channel/getFansOf/channelId=${userId}/startFrom=${start}/numberOfRecords=50`)
 }
 

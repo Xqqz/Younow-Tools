@@ -27,6 +27,10 @@ function extractUser(user) {
     }
 }
 exports.extractUser = extractUser;
+function errortoString(result) {
+    return `${result.errorCode} ${result.errorMsg}`;
+}
+exports.errortoString = errortoString;
 function resolveUser(db, user) {
     let userdb = module_db_1.isUsernameInDB(db, user);
     if (userdb) {
@@ -271,4 +275,8 @@ function moveFile(filename) {
         }
     });
 }
+function getFollowed(userId, start) {
+    return module_utils_1.getURL(`https://cdn.younow.com/php/api/channel/getFansOf/channelId=${userId}/startFrom=${start}/numberOfRecords=50`);
+}
+exports.getFollowed = getFollowed;
 //# sourceMappingURL=module_younow.js.map
