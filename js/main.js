@@ -134,7 +134,6 @@ function main(args) {
         exports.settings.useFFMPEG = commander["ffmpeg"];
         exports.settings.locale = commander["locale"].toLowerCase();
         exports.settings.timeout = commander["timer"];
-        module_utils_1.log(commander);
         if (!(yield dos.exists(exports.settings.pathConfig))) {
             yield dos.mkdir(exports.settings.pathConfig);
         }

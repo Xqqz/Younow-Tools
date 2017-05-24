@@ -177,8 +177,6 @@ async function main(args)
 	settings.locale=commander["locale"].toLowerCase()
 	settings.timeout=commander["timer"]
 
-	log(commander)
-
 	if (!await dos.exists(settings.pathConfig))
 	{
 
