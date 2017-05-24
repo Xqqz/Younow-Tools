@@ -97,6 +97,9 @@ exports.getTagInfo = getTagInfo;
 function downloadArchive(user, bid, started) {
     return __awaiter(this, void 0, void 0, function* () {
         module_utils_1.info("downloadArchive", user.profile, bid);
+        if (main_1.settings.noDownload) {
+            return true;
+        }
         let archive = yield getArchivedBroadcast(bid);
         if (archive.errorCode) {
             module_utils_1.error(`${user.profile} ${bid} ${archive.errorCode} ${archive.errorMsg}`);
@@ -149,7 +152,14 @@ function getPlaylist(bid) {
 }
 exports.getPlaylist = getPlaylist;
 function downloadThemAll(live) {
-    return Promise.all([saveJSON(live), downloadThumbnail(live), downloadLiveStream(live)]);
+    return __awaiter(this, void 0, void 0, function* () {
+        if (main_1.settings.noDownload) {
+            return [true, true, true];
+        }
+        else {
+            return Promise.all([saveJSON(live), downloadThumbnail(live), downloadLiveStream(live)]);
+        }
+    });
 }
 exports.downloadThemAll = downloadThemAll;
 function downloadLiveStream(live) {

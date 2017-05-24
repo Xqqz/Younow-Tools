@@ -21,7 +21,7 @@ function cmdScan(script_file) {
             }, main_1.settings.timeout * 60000);
             update_scan(db, streams);
             fs.watchFile(main_1.settings.pathDB, (curr, prev) => {
-                module_utils_1.error(`DATABASE UPDATED`);
+                module_utils_1.info(`DATABASE UPDATED`);
                 db.self.update();
             });
         });

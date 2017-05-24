@@ -65,14 +65,7 @@ export function error(err)
 {
 	process.stdout.write(`\u001b[91m`)
 
-	if (err.stack)
-	{
-		log(err)
-	}
-	else
-	{
-		log(err)
-	}
+	log(err)
 
 	process.stdout.write(`\u001b[39m`)
 	return null

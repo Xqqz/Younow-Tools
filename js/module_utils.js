@@ -47,12 +47,7 @@ function dump(o) {
 exports.dump = dump;
 function error(err) {
     process.stdout.write(`\u001b[91m`);
-    if (err.stack) {
-        exports.log(err);
-    }
-    else {
-        exports.log(err);
-    }
+    exports.log(err);
     process.stdout.write(`\u001b[39m`);
     return null;
 }

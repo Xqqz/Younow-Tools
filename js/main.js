@@ -21,8 +21,9 @@ exports.settings = {
     version: pkg.version,
     pathDB: null,
     pathDownload: null,
+    noDownload: null,
     pathMove: null,
-    pathConfig: _path.join(process.env.APPDATA || process.env.HOME, "YounowTools"),
+    pathConfig: null,
     parallelDownloads: null,
     useFFMPEG: null,
     FFMPEG_DEFAULT: "-hide_banner -loglevel error -c copy -video_track_timescale 0",
@@ -49,14 +50,15 @@ function main(args) {
         commander
             .version(exports.settings.version)
             .option("-v, --verbose", "verbosity level (-v -vv -vvv)", ((x, v) => v + 1), 0)
-            .option("--db <path>", "database filename (default ./broadcasters.json")
-            .option("--dl <path>", "download path (default current)")
+            .option("--dl <path>", "download path (default current dir)")
+            .option("--nodl", "Execute commands without downloading", false)
             .option("--mv <path>", "at the end MOVE files to this path (default do nothing)")
             .option("-t --timer <minutes>", "scan interval (default 5 minutes)", 5)
             .option("-l --limit <number>", "number of parallel downloads for a stream (default 5)")
             .option("--ffmpeg <arguments>", "use ffmpeg (must be in your path) to parse and write the video stream (advanced)", false)
             .option("--fmt <format>", "change the output format (FFMPEG will be enabled)", "ts")
-            .option(`--locale <xx>`, `change the default (en) locale (ww|en|de|es|tr|me)`, `en`);
+            .option(`--locale <xx>`, `change the default (en) locale (ww|en|de|es|tr|me)`, `en`)
+            .option("--config <path>", "change config folder", _path.join(process.env.APPDATA || process.env.HOME, "YounowTools"));
         commander
             .command("follow <users...>")
             .description("record/monitor broadcasts followed (aka FanOf on profile page) from any user(s) or your account.")
@@ -122,14 +124,17 @@ function main(args) {
         commander.parse(args);
         let params = commander.args[0];
         module_utils_1.setVerbose(commander["verbose"] || 0);
-        exports.settings.pathDB = commander["db"] || _path.join(exports.settings.pathConfig, "broadcasters.txt");
+        exports.settings.pathConfig = commander["config"];
+        exports.settings.pathDB = _path.join(exports.settings.pathConfig, "broadcasters.txt");
         exports.settings.pathDownload = commander["dl"] || ".";
+        exports.settings.noDownload = commander["nodl"];
         exports.settings.pathMove = commander["mv"] || null;
         exports.settings.parallelDownloads = commander["limit"] || 5;
         exports.settings.videoFormat = commander["fmt"];
         exports.settings.useFFMPEG = commander["ffmpeg"];
         exports.settings.locale = commander["locale"].toLowerCase();
         exports.settings.timeout = commander["timer"];
+        module_utils_1.log(commander);
         if (!(yield dos.exists(exports.settings.pathConfig))) {
             yield dos.mkdir(exports.settings.pathConfig);
         }

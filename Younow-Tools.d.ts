@@ -459,6 +459,7 @@ interface Settings
 
 	/** download/temp folder {string|null} */
 	pathDownload:string
+	noDownload:boolean
 	parallelDownloads:number
 	pathConfig:string
 	readonly FFMPEG_DEFAULT:string

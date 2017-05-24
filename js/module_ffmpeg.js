@@ -22,6 +22,12 @@ class VideoWriter {
                     this.ffmpeg = null;
                     module_utils_1.info("FFMPEG close", result);
                 });
+                this.ffmpeg.on("exit", code => {
+                    this.ffmpeg = null;
+                    if (code) {
+                        module_utils_1.error(`FFMPEG exit ${code}`);
+                    }
+                });
                 this.ffmpeg.stderr.on("data", data => module_utils_1.error(data.toString()));
             }
             catch (e) {
@@ -33,19 +39,29 @@ class VideoWriter {
         }
     }
     close(callback) {
-        if (this.ffmpeg) {
-            this.ffmpeg.stdin.end(callback);
+        try {
+            if (this.ffmpeg) {
+                this.ffmpeg.stdin.end(callback);
+            }
+            else if (this.stream) {
+                this.stream.end(callback);
+            }
         }
-        else if (this.stream) {
-            this.stream.end(callback);
+        catch (e) {
+            module_utils_1.error(e);
         }
     }
     write(data, callback) {
-        if (this.ffmpeg && data) {
-            this.ffmpeg.stdin.write(data, callback);
+        try {
+            if (this.ffmpeg && data) {
+                this.ffmpeg.stdin.write(data, callback);
+            }
+            else if (this.stream && data) {
+                this.stream.write(data, callback);
+            }
         }
-        else if (this.stream && data) {
-            this.stream.write(data, callback);
+        catch (e) {
+            module_utils_1.error(e);
         }
     }
 }

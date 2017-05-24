@@ -32,7 +32,7 @@ export function cmdScan(script_file:string)
 
 			fs.watchFile(settings.pathDB,(curr,prev)=>
 			{
-				error(`DATABASE UPDATED`)
+				info(`DATABASE UPDATED`)
 				db.self.update()
 			})
 		})

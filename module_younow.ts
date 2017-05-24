@@ -168,6 +168,11 @@ export async function downloadArchive(user:Younow.UserInfo|DBUser,bid:number,sta
 {
 	info("downloadArchive",user.profile,bid)
 
+	if (settings.noDownload)
+	{
+		return true
+	}
+
 	let archive=await getArchivedBroadcast(bid)
 
 	if (archive.errorCode)
@@ -242,9 +247,16 @@ export function getPlaylist(bid):Promise<string>
 
 /** returns Promise<[json:boolean,image:boolean,video:boolean]> */
 
-export function downloadThemAll(live:Younow.LiveBroadcast)
+export async function downloadThemAll(live:Younow.LiveBroadcast)
 {
-	return Promise.all([saveJSON(live),downloadThumbnail(live),downloadLiveStream(live)])
+	if (settings.noDownload)
+	{
+		return [true,true,true]
+	}
+	else
+	{
+		return Promise.all([saveJSON(live),downloadThumbnail(live),downloadLiveStream(live)])
+	}
 }
 
 /**

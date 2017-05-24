@@ -1,7 +1,7 @@
 import * as younow from "./module_younow"
 import * as database from "./module_db"
 import {settings} from "./main"
-import {log,error,prettify,getURL} from "./module_utils"
+import {log,info,error,prettify,getURL} from "./module_utils"
 
 interface LiveBroadcasters
 {
@@ -72,7 +72,7 @@ export async function cmdFollow(users:string[])
 							{
 								if (broadcaster.status==null)
 								{
-									error(`${followed.profile} is ignored`)
+									info(`${followed.profile} is ignored`)
 								}
 								broadcaster.status=followed.status
 							}
@@ -98,7 +98,7 @@ export async function cmdFollow(users:string[])
 											{
 												// retry if not ready
 												broadcaster.status=null
-												error(`${live.profile} is not ready`)
+												info(`${live.profile} is not ready`)
 											}
 											else
 											{

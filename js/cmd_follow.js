@@ -51,7 +51,7 @@ function cmdFollow(users) {
                                     let broadcaster = liveBroadcasters[userId];
                                     if (userId in db && db[userId].ignore) {
                                         if (broadcaster.status == null) {
-                                            module_utils_1.error(`${followed.profile} is ignored`);
+                                            module_utils_1.info(`${followed.profile} is ignored`);
                                         }
                                         broadcaster.status = followed.status;
                                     }
@@ -67,7 +67,7 @@ function cmdFollow(users) {
                                                         .then(live => {
                                                         if (live.errorCode || live.lastSegmentId == undefined) {
                                                             broadcaster.status = null;
-                                                            module_utils_1.error(`${live.profile} is not ready`);
+                                                            module_utils_1.info(`${live.profile} is not ready`);
                                                         }
                                                         else {
                                                             return younow.downloadThemAll(live)

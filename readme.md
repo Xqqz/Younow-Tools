@@ -1,5 +1,7 @@
 # Younow-Tools
 
+[![NPM](https://nodei.co/npm/younow-tools.png?downloads=true&downloadRank=true&stars=true)](https://nodei.co/npm/younow-tools/)[![NPM](https://nodei.co/npm-dl/younow-tools.png?height=3)](https://nodei.co/npm/younow-tools/)
+
 ## Installation
 
 1st you need to install  [NodeJS](https://nodejs.org/en/download/current/) download and install the LTS or Current.
@@ -16,9 +18,9 @@ To update younow-tools just type :
 
 ### Change log
 
-20170504 fix : linux compatibility  
-20170506 add : option --locale  
-20170507 add : command follow  
+20170504 fix : linux compatibility
+20170506 add : option --locale
+20170507 add : command follow
 20170510 add : command followed & fix follow "soon..."
 
 ## Summary
@@ -131,13 +133,17 @@ ignore this (advanced)
 
 Use a different locale for request. Default is en (english).
 
-### --db <path>
+### --config <path>
 
-Change default database location.
+Change default config location for database and data.
 
 ### --dl <path>
 
 Change default download folder (current path is the default)
+
+### --nodl (advanced)
+
+Execute commands (vcr, scan, broadcast, live) without downloading
 
 ### -l --limit <number>
 

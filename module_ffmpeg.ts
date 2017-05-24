@@ -44,7 +44,17 @@ export class VideoWriter
 					info("FFMPEG close",result)
 				})
 
-				this.ffmpeg.stderr.on("data",data=>error(data.toString()))
+				this.ffmpeg.on("exit",code=>
+				{
+					this.ffmpeg=null
+					if (code)
+					{
+						error(`FFMPEG exit ${code}`)
+					}
+				})
+
+				this.ffmpeg.stderr.on("data",data=>
+					error(data.toString()))
 			}
 			catch(e)
 			{
@@ -62,13 +72,20 @@ export class VideoWriter
 	 */
 	close(callback:Function)
 	{
-		if (this.ffmpeg)
+		try
 		{
-			this.ffmpeg.stdin.end(callback)
+			if (this.ffmpeg)
+			{
+				this.ffmpeg.stdin.end(callback)
+			}
+			else if (this.stream)
+			{
+				this.stream.end(callback)
+			}
 		}
-		else if (this.stream)
+		catch(e)
 		{
-			this.stream.end(callback)
+			error(e)
 		}
 	}
 	/**
@@ -78,13 +95,20 @@ export class VideoWriter
 	 */
 	write(data:Buffer,callback:Function)
 	{
-		if (this.ffmpeg && data)
+		try
 		{
-			this.ffmpeg.stdin.write(data,callback)
+			if (this.ffmpeg && data)
+			{
+				this.ffmpeg.stdin.write(data,callback)
+			}
+			else if (this.stream && data)
+			{
+				this.stream.write(data,callback)
+			}
 		}
-		else if (this.stream && data)
+		catch(e)
 		{
-			this.stream.write(data,callback)
+			error(e)
 		}
 	}
 }
