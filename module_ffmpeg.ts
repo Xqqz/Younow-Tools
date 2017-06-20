@@ -26,40 +26,32 @@ export class VideoWriter
 
 			info(`FFMPEG : ${params.join(" ")}`)
 
-			try
+			this.ffmpeg=spawn("ffmpeg",params)
+
+			this.ffmpeg.on("error",err=>
 			{
-				this.ffmpeg=spawn("ffmpeg",params)
+				error(err)
+			})
 
-				/** @todo */
-
-				this.ffmpeg.on("error",err=>
-				{
-					this.ffmpeg=null
-					error(err)
-				})
-
-				this.ffmpeg.on("close",result=>
-				{
-					this.ffmpeg=null
-					info("FFMPEG close",result)
-				})
-
-				this.ffmpeg.on("exit",code=>
-				{
-					this.ffmpeg=null
-					if (code)
-					{
-						error(`FFMPEG exit ${code}`)
-					}
-				})
-
-				this.ffmpeg.stderr.on("data",data=>
-					error(data.toString()))
-			}
-			catch(e)
+			this.ffmpeg.on("exit",code=>
 			{
-				error(e)
-			}
+				if (code)
+				{
+					error(`FFMPEG exit ${code}`)
+				}
+			})
+
+			this.ffmpeg.on("close",code=>
+			{
+				this.ffmpeg=null
+			})
+
+			this.ffmpeg.stderr.on("data",data=>
+			{
+				//error(data.toString())
+			})
+
+			this.ffmpeg.stdin.on("error",err=>err)
 		}
 		else
 		{
@@ -72,20 +64,13 @@ export class VideoWriter
 	 */
 	close(callback:Function)
 	{
-		try
+		if (this.ffmpeg)
 		{
-			if (this.ffmpeg)
-			{
-				this.ffmpeg.stdin.end(callback)
-			}
-			else if (this.stream)
-			{
-				this.stream.end(callback)
-			}
+			this.ffmpeg.stdin.end(callback)
 		}
-		catch(e)
+		else if (this.stream)
 		{
-			error(e)
+			this.stream.end(callback)
 		}
 	}
 	/**
@@ -95,20 +80,13 @@ export class VideoWriter
 	 */
 	write(data:Buffer,callback:Function)
 	{
-		try
+		if (this.ffmpeg && data)
 		{
-			if (this.ffmpeg && data)
-			{
-				this.ffmpeg.stdin.write(data,callback)
-			}
-			else if (this.stream && data)
-			{
-				this.stream.write(data,callback)
-			}
+			this.ffmpeg.stdin.write(data,callback)
 		}
-		catch(e)
+		else if (this.stream && data)
 		{
-			error(e)
+			this.stream.write(data,callback)
 		}
 	}
 }

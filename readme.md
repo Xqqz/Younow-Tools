@@ -378,6 +378,6 @@ To compile the source (.ts) you need typescript (VSCode or Atom editor) and shar
 
 Report any bug or missing feature at your will.
 
-If you like this software, please consider a Bitcoin donation to bitcoin://34fygtqeAP62xixpTj6w9XTtfKmqjFqpo6**
+If you like this software, please consider a Bitcoin donation to bitcoin://34fygtqeAP62xixpTj6w9XTtfKmqjFqpo6
 
 # Enjoy !

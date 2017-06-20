@@ -135,15 +135,15 @@ function main(args) {
         exports.settings.locale = commander["locale"].toLowerCase();
         exports.settings.timeout = commander["timer"];
         if (!(yield dos.exists(exports.settings.pathConfig))) {
-            yield dos.mkdir(exports.settings.pathConfig);
+            yield dos.createDirectory(exports.settings.pathConfig);
         }
         if (exports.settings.pathMove) {
             if (!(yield dos.exists(exports.settings.pathMove))) {
-                yield dos.mkdir(exports.settings.pathMove);
+                yield dos.createDirectory(exports.settings.pathMove);
             }
         }
         if (!(yield dos.exists(exports.settings.pathDownload))) {
-            yield dos.mkdir(exports.settings.pathDownload);
+            yield dos.createDirectory(exports.settings.pathDownload);
         }
         if (exports.settings.videoFormat.toLowerCase() != "ts") {
             if (!exports.settings.useFFMPEG) {

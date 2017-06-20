@@ -180,20 +180,20 @@ async function main(args)
 	if (!await dos.exists(settings.pathConfig))
 	{
 
-		await dos.mkdir(settings.pathConfig)
+		await dos.createDirectory(settings.pathConfig)
 	}
 
 	if (settings.pathMove)
 	{
 		if (!await dos.exists(settings.pathMove))
 		{
-			await dos.mkdir(settings.pathMove)
+			await dos.createDirectory(settings.pathMove)
 		}
 	}
 
 	if (!await dos.exists(settings.pathDownload))
 	{
-		await dos.mkdir(settings.pathDownload)
+		await dos.createDirectory(settings.pathDownload)
 	}
 
 	if (settings.videoFormat.toLowerCase()!="ts")
